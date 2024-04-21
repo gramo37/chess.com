@@ -1,0 +1,9 @@
+export const INIT_GAME = "init_game";
+export const MOVE = "move";
+export const GAMEOVER = "game_over";
+export const GAMESTARTED = "game_started";
+export const GAMENOTFOUND = "game_not_found";
+export const WHITE = "white";
+export const BLACK = "black";
+export const INVALID_MOVE = "invalid_move";
+export const MOVESUCCESS = "success_move"
