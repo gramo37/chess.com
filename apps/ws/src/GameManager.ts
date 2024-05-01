@@ -13,7 +13,6 @@ export class GameManager {
   private currentUsertoken: string;
   private currentUsername: string;
   private currentUserId: string;
-  private gameId: string;
 
   constructor() {
     this.games = [];
@@ -22,7 +21,6 @@ export class GameManager {
     this.currentUsertoken = "";
     this.currentUsername = "";
     this.currentUserId = "";
-    this.gameId = randomUUID();
   }
 
   addUser(player: Player, token: string) {
@@ -61,25 +59,8 @@ export class GameManager {
       // Eg -> When a player opens the same link in the same browser
       if (this.pendingUser.getPlayerToken() !== player.getPlayerToken()) {
         const game = new Game(this.pendingUser, player);
+        await game.createGame();
         this.games.push(game);
-        // Add this game in the database
-        const db_game = await db.game.create({
-          data: {
-            status: "IN_PROGRESS",
-            whitePlayer: {
-              connect: {
-                id: this.pendingUser.getPlayerId(),
-              },
-            },
-            blackPlayer: {
-              connect: {
-                id: player.getPlayerId(),
-              },
-            },
-          },
-        });
-        console.log(game);
-        this.gameId = db_game.id;
         this.pendingUser = null;
       }
     }
@@ -93,9 +74,6 @@ export class GameManager {
     );
     if (game) {
       game.makeMove(socket, move);
-      // Add the move in move table
-      // Update the board in games table
-      
     }
     else
       sendMessage(socket, {

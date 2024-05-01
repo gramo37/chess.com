@@ -1,6 +1,7 @@
 import { PassportStatic } from "passport";
 import { db } from "../db";
 import jwt from "jsonwebtoken"
+import bcrypt from "bcrypt";
 const LocalStrategy = require("passport-local").Strategy;
 
 const SECRET_KEY = process.env.SECRET_KEY ?? "SECRET_KEY";
@@ -15,7 +16,8 @@ export const initPassport = (passport: PassportStatic) => {
           },
         });
         if (!user) return done(null, false);
-        if (user.password !== password) return done(null, false);
+        const isCorrectPassword = verifyPassword(user.password, password)
+        if(!isCorrectPassword) return done(null, false);
         done(null, user);
       } catch (error) {
         done(error, false);
@@ -39,3 +41,7 @@ export const initPassport = (passport: PassportStatic) => {
     });
   });
 };
+
+async function verifyPassword(plainTextPassword: string, hashPassword: string) {
+  return await bcrypt.compare(plainTextPassword, hashPassword);
+}

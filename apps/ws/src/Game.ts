@@ -10,6 +10,8 @@ import {
   WHITE,
   BLACK,
 } from "./constants";
+import { db } from "./db";
+import { randomUUID } from "crypto";
 
 export type TMove = {
   from: string;
@@ -23,6 +25,7 @@ export class Game {
   private moves: TMove[];
   private moveCount: number;
   private startTime: Date;
+  private gameId: string;
 
   constructor(player1: Player, player2: Player) {
     this.player1 = player1;
@@ -31,19 +34,7 @@ export class Game {
     this.moves = [];
     this.moveCount = 0;
     this.startTime = new Date();
-
-    sendMessage(this.player1.getPlayer(), {
-      type: GAMESTARTED,
-      payload: {
-        color: WHITE,
-      },
-    });
-    sendMessage(this.player2.getPlayer(), {
-      type: GAMESTARTED,
-      payload: {
-        color: BLACK,
-      },
-    });
+    this.gameId = randomUUID();
   }
 
   getPlayer1() {
@@ -97,6 +88,9 @@ export class Game {
     this.moves.push(move);
     this.board = chess.fen();
 
+    // // Add the move in move table
+    // Update the board in games table
+
     sendMessage(player2, {
       type: MOVESUCCESS,
       payload: {
@@ -149,5 +143,38 @@ export class Game {
     }
 
     this.moveCount += 1;
+  }
+
+  async createGame() {
+    const db_game = await db.game.create({
+      data: {
+        status: "IN_PROGRESS",
+        whitePlayer: {
+          connect: {
+            id: this.player1.getPlayerId(),
+          },
+        },
+        blackPlayer: {
+          connect: {
+            id: this.player2.getPlayerId(),
+          },
+        },
+      },
+    });
+    this.gameId = db_game.id;
+
+    sendMessage(this.player1.getPlayer(), {
+      type: GAMESTARTED,
+      payload: {
+        color: WHITE,
+      },
+    });
+
+    sendMessage(this.player2.getPlayer(), {
+      type: GAMESTARTED,
+      payload: {
+        color: BLACK,
+      },
+    });
   }
 }

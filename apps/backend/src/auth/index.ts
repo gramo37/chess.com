@@ -1,6 +1,7 @@
 import express from "express";
 import { db } from "../db";
 import passport from "passport";
+import bcrypt from "bcrypt";
 
 const router = express.Router();
 const backendURL = process.env.backendURL ?? "http://localhost:5173";
@@ -22,9 +23,12 @@ router.post("/register", async (req, res) => {
       },
     });
     if (user) return res.status(400).send("User already exists");
+    const hashPassword = await bcrypt.hash(req.body.password, 10);
     const newUser = await db.user.create({
       data: {
         email: req.body.username,
+        password: hashPassword,
+        name: req.body.name
       },
     });
     res.redirect(successURL);
