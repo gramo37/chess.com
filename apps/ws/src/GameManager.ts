@@ -3,61 +3,69 @@ import { GAMENOTFOUND, INIT_GAME, MOVE, BLACK, WHITE } from "./constants";
 import { Game, TMove } from "./Game";
 import { Player } from "./Player";
 import { sendMessage } from "./utils";
-import { db } from "./db";
-import { randomUUID } from "crypto";
+import { extractUser } from "./auth";
 
 export class GameManager {
   private games: Game[];
   private pendingUser: Player | null;
   private users: Player[];
-  private currentUsertoken: string;
-  private currentUsername: string;
-  private currentUserId: string;
 
   constructor() {
     this.games = [];
     this.pendingUser = null;
     this.users = [];
-    this.currentUsertoken = "";
-    this.currentUsername = "";
-    this.currentUserId = "";
   }
 
-  addUser(player: Player, token: string) {
-    this.currentUsertoken = token;
-    this.currentUsername = player.getPlayerName();
-    this.currentUserId = player.getPlayerId();
-    this.users.push(player);
-    this.addHandlers(player.getPlayerSocket());
+  async addUser(socket: WebSocket, token: string) {
+    this.addHandlers(socket, token);
+  }
+
+  addHandlers(socket: WebSocket, token: string) {
+    const self = this;
+    socket.on("message", async function connection(data) {
+      const message = JSON.parse(data.toString());
+      switch (message?.type) {
+        case INIT_GAME:
+          await self.initGame(socket, token);
+          break;
+        case MOVE:
+          self.makeMove(socket, message.move);
+          break;
+        default:
+          break;
+      }
+    });
   }
 
   removeUser(socket: WebSocket) {
     this.users = this.users.filter((user) => user.getPlayerSocket() !== socket);
   }
 
-  async initGame(socket: WebSocket) {
+  async initGame(socket: WebSocket, token: string) {
+    const user = await extractUser(token);
+    if(!user || !user.name || !user.id) return;
     if (this.pendingUser === null) {
-      // socket: WebSocket, color: string, token: string, name: string
       const player = new Player(
         socket,
         WHITE,
-        this.currentUsertoken,
-        this.currentUsername,
-        this.currentUserId
+        token,
+        user.name,
+        user.id
       );
       this.pendingUser = player;
+      this.users.push(player);
     } else {
-      // Create a game between pendingUser and socket
       const player = new Player(
         socket,
         BLACK,
-        this.currentUsertoken,
-        this.currentUsername,
-        this.currentUserId
+        token,
+        user.name,
+        user.id
       );
       // Avoid creating game between the same player.
       // Eg -> When a player opens the same link in the same browser
       if (this.pendingUser.getPlayerToken() !== player.getPlayerToken()) {
+        this.users.push(player);
         const game = new Game(this.pendingUser, player);
         await game.createGame();
         this.games.push(game);
@@ -67,6 +75,7 @@ export class GameManager {
   }
 
   makeMove(socket: WebSocket, move: TMove) {
+    // const socket = player.getPlayerSocket();
     const game = this.games.find(
       (game) =>
         game.getPlayer1().getPlayer() === socket ||
@@ -74,27 +83,9 @@ export class GameManager {
     );
     if (game) {
       game.makeMove(socket, move);
-    }
-    else
+    } else
       sendMessage(socket, {
         type: GAMENOTFOUND,
       });
-  }
-
-  addHandlers(socket: WebSocket) {
-    const self = this;
-    socket.on("message", async function connection(data) {
-      const message = JSON.parse(data.toString());
-      switch (message?.type) {
-        case INIT_GAME:
-          await self.initGame(socket);
-          break;
-        case MOVE:
-          self.makeMove(socket, message.move);
-          break;
-        default:
-          break;
-      }
-    });
   }
 }
