@@ -7,13 +7,12 @@ import { usePersonStore } from "./contexts/auth";
 function App() {
   useGetUser();
   const user = usePersonStore((state) => state.user);
-  console.log(user)
 
   return (
     <div className="bg-slate-900 h-full w-screen">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Landing />} />
+          <Route path="/" element={user ? <Game /> : <Landing />} />
           <Route path="/game" element={user ? <Game /> : <Landing />} />
         </Routes>
       </BrowserRouter>
