@@ -22,7 +22,7 @@
     "setup:db": "cp .env.example ./packages/db/prisma/.env",
     "setup:ws": "cp .env.example ./apps/ws/.env",
     "setup:frontend": "cp .env.example ./apps/frontend/.env",
-    "dev:setup": "yarn setup && yarn setup:backend && yarn setup:db && yarn setup:ws && yarn setup:frontend"
+    "dev:setup": "yarn setup && yarn setup:backend && yarn setup:db && yarn setup:ws && yarn setup:frontend && yarn && yarn generate && yarn workspace backend run build"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
