@@ -16,7 +16,13 @@
     "dev": "turbo run dev",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "generate": "turbo run generate",
-    "lint": "turbo run lint"
+    "lint": "turbo run lint",
+    "setup": "cp .env.example .env",
+    "setup:backend": "cp .env.example ./apps/backend/.env",
+    "setup:db": "cp .env.example ./packages/db/prisma/.env",
+    "setup:ws": "cp .env.example ./apps/ws/.env",
+    "setup:frontend": "cp .env.example ./apps/frontend/.env",
+    "dev:setup": "yarn setup && yarn setup:backend && yarn setup:db && yarn setup:ws && yarn setup:frontend"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",

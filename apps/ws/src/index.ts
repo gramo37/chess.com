@@ -6,7 +6,9 @@ import { Player } from './Player';
 import { WHITE } from './constants';
 // import { db } from "./db";
 
-const wss = new WebSocketServer({ port: 8080 });
+const PORT = process.env.WEBSOCKET_PORT ?? 8080
+
+const wss = new WebSocketServer({ port: +PORT });
 const gameManager = new GameManager();
 
 wss.on('connection', async function connection(ws, req) {

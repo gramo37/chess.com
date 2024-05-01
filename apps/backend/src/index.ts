@@ -13,7 +13,7 @@ dotenv.config();
 
 const app = express();
 const ejs = require("ejs");
-const PORT = process.env.PORT ?? 3000;
+const PORT = process.env.BACKEND_PORT ?? 3000;
 
 initPassport(passport);
 
