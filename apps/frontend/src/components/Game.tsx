@@ -3,7 +3,13 @@ import { useSocket } from "../hooks/useSocket";
 import { useEffect, useState } from "react";
 import { Square } from "chess.js";
 import { Piece } from "react-chessboard/dist/chessboard/types";
-import { GAMEOVER, GAMESTARTED, INIT_GAME, MOVESUCCESS } from "../constants";
+import {
+  GAMEOVER,
+  GAMERESTARTED,
+  GAMESTARTED,
+  INIT_GAME,
+  MOVESUCCESS,
+} from "../constants";
 import { LOGOUT_URL } from "../constants/routes";
 import { useNavigate } from "react-router-dom";
 import { usePersonStore } from "../contexts/auth";
@@ -45,6 +51,10 @@ export default function Game() {
           loser: message.payload.loser,
         });
         setIsGameOn(false);
+      } else if (message.type === GAMERESTARTED) {
+        setBoard(message.payload.board);
+        setMoves(message.payload.moves);
+        setColor(message.payload.color);
       }
     };
 
@@ -73,7 +83,6 @@ export default function Game() {
   };
 
   function onDrop(sourceSquare: Square, targetSquare: Square, piece: Piece) {
-    console.log(piece);
     // TODO: Create a onPromotionCheck function and send promotion if true
     makeAMove({
       from: sourceSquare,
@@ -90,7 +99,7 @@ export default function Game() {
       },
       credentials: "include",
     });
-    updateUser(null)
+    updateUser(null);
     navigate("/");
   }
 

@@ -9,6 +9,9 @@ import {
   MOVESUCCESS,
   WHITE,
   BLACK,
+  IN_PROGRESS,
+  NOT_YET_STARTED,
+  GAMERESTARTED,
 } from "./constants";
 import { db } from "./db";
 import { randomUUID } from "crypto";
@@ -26,15 +29,22 @@ export class Game {
   private moveCount: number;
   private startTime: Date;
   private gameId: string;
+  private status: string;
 
-  constructor(player1: Player, player2: Player) {
+  constructor(
+    player1: Player,
+    player2: Player,
+    gameId?: string,
+    status?: string
+  ) {
     this.player1 = player1;
     this.player2 = player2;
     this.board = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     this.moves = [];
     this.moveCount = 0;
     this.startTime = new Date();
-    this.gameId = randomUUID();
+    this.gameId = gameId ?? randomUUID();
+    this.status = status ?? NOT_YET_STARTED;
   }
 
   getPlayer1() {
@@ -45,7 +55,28 @@ export class Game {
     return this.player2;
   }
 
-  makeMove(socket: WebSocket, move: TMove) {
+  getGameId() {
+    return this.gameId;
+  }
+
+  setPlayer1(player: Player) {
+    this.player1 = player;
+  }
+
+  setPlayer2(player: Player) {
+    this.player2 = player;
+  }
+
+  setMoves(moves: TMove[]) {
+    this.moves = moves;
+    this.moveCount = moves?.length;
+  }
+
+  setboard(board: string) {
+    this.board = board;
+  }
+
+  async makeMove(socket: WebSocket, move: TMove) {
     const player1 = this.player1.getPlayer();
     const player2 = this.player2.getPlayer();
     // Validate the move
@@ -88,8 +119,29 @@ export class Game {
     this.moves.push(move);
     this.board = chess.fen();
 
-    // // Add the move in move table
-    // Update the board in games table
+    // Update the move in DB
+    await db.$transaction([
+      db.move.create({
+        data: {
+          Game: {
+            connect: {
+              id: this.gameId,
+            },
+          },
+          moveNumber: this.moveCount + 1,
+          from: move.from,
+          to: move.to,
+        },
+      }),
+      db.game.update({
+        data: {
+          board: this.board,
+        },
+        where: {
+          id: this.gameId,
+        },
+      }),
+    ]);
 
     sendMessage(player2, {
       type: MOVESUCCESS,
@@ -140,40 +192,63 @@ export class Game {
           },
         });
       }
+
+      // Update the result of game in DB
     }
 
     this.moveCount += 1;
   }
 
   async createGame() {
-    const db_game = await db.game.create({
-      data: {
-        status: "IN_PROGRESS",
-        whitePlayer: {
-          connect: {
-            id: this.player1.getPlayerId(),
+    if (this.status === NOT_YET_STARTED) {
+      const db_game = await db.game.create({
+        data: {
+          status: IN_PROGRESS,
+          whitePlayer: {
+            connect: {
+              id: this.player1.getPlayerId(),
+            },
+          },
+          blackPlayer: {
+            connect: {
+              id: this.player2.getPlayerId(),
+            },
           },
         },
-        blackPlayer: {
-          connect: {
-            id: this.player2.getPlayerId(),
-          },
+      });
+      this.gameId = db_game.id;
+      this.status = IN_PROGRESS;
+      sendMessage(this.player1.getPlayer(), {
+        type: GAMESTARTED,
+        payload: {
+          color: this.gameId ? this.player1.getPlayerColor() : WHITE,
         },
-      },
-    });
-    this.gameId = db_game.id;
+      });
 
+      sendMessage(this.player2.getPlayer(), {
+        type: GAMESTARTED,
+        payload: {
+          color: this.gameId ? this.player2.getPlayerColor() : BLACK,
+        },
+      });
+
+      return;
+    }
     sendMessage(this.player1.getPlayer(), {
-      type: GAMESTARTED,
+      type: GAMERESTARTED,
       payload: {
-        color: WHITE,
+        board: this.board,
+        moves: this.moves,
+        color: this.gameId ? this.player1.getPlayerColor() : WHITE,
       },
     });
 
     sendMessage(this.player2.getPlayer(), {
-      type: GAMESTARTED,
+      type: GAMERESTARTED,
       payload: {
-        color: BLACK,
+        board: this.board,
+        moves: this.moves,
+        color: this.gameId ? this.player2.getPlayerColor() : BLACK,
       },
     });
   }

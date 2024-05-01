@@ -3,14 +3,14 @@ import { WebSocket } from "ws";
 export class Player {
   private id: string;
   private color: string;
-  private player: WebSocket;
-  private token: string;
+  private player: WebSocket | null;
+  private token: string | null;
   private name: string;
 
   constructor(
-    socket: WebSocket,
+    socket: WebSocket | null,
     color: string,
-    token: string,
+    token: string | null,
     name: string,
     id: string
   ) {
@@ -43,5 +43,13 @@ export class Player {
 
   getPlayerId() {
     return this.id;
+  }
+
+  setPlayerSocket(socket: WebSocket) {
+    this.player = socket;
+  }
+
+  setPlayerToken(token: string) {
+    this.token = token;
   }
 }
