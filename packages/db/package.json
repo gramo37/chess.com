@@ -15,7 +15,8 @@
     "lint": "eslint . --max-warnings 0",
     "prebuild": "npm run generate",
     "predev": "npm run generate",
-    "studio": "prisma studio"
+    "studio": "prisma studio",
+    "db:reset": "prisma migrate reset"
   },
   "dependencies": {
     "@prisma/client": "^5.10.2"

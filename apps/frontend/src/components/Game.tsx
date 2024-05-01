@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { Square } from "chess.js";
 import { Piece } from "react-chessboard/dist/chessboard/types";
 import { GAMEOVER, GAMESTARTED, INIT_GAME, MOVESUCCESS } from "../constants";
+import { LOGOUT_URL } from "../constants/routes";
+import { useNavigate } from "react-router-dom";
+import { usePersonStore } from "../contexts/auth";
 
 type TMove = {
   from: string;
@@ -17,6 +20,8 @@ export default function Game() {
   const [board, setBoard] = useState("");
   const [moves, setMoves] = useState<TMove[]>([]);
   const [color, setColor] = useState<null | "white" | "black">(null);
+  const navigate = useNavigate();
+  const updateUser = usePersonStore((state) => state.updateUser);
   const [result, setResult] = useState<null | {
     winner: string;
     loser: string;
@@ -77,6 +82,18 @@ export default function Game() {
     return true;
   }
 
+  async function logout() {
+    await fetch(`${LOGOUT_URL}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    updateUser(null)
+    navigate("/");
+  }
+
   return (
     <div className="flex border justify-between min-w-96 lg:flex-row flex-col">
       <div className="flex-1 flex max-w-2xl justify-center items-center p-3">
@@ -128,6 +145,12 @@ export default function Game() {
                 onClick={startGame}
               >
                 Play
+              </button>
+              <button
+                className="text-white border border-white py-5 px-14 hover:bg-white hover:text-black transition-all"
+                onClick={logout}
+              >
+                Logout
               </button>
             </>
           )}

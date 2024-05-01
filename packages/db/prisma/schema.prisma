@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
-  provider             = "mysql"
+  provider             = "postgres"
   url                  = env("DATABASE_URL")
   referentialIntegrity = "prisma"
 }
@@ -15,6 +15,47 @@ generator client {
 model User {
   id            String    @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String    @unique @default("demo@gmail.com")
   emailVerified DateTime?
+  password      String    @default("test")
+  gamesAsWhite  Game[]    @relation("GamesAsWhite")
+  gamesAsBlack  Game[]    @relation("GamesAsBlack")
+}
+
+model Game {
+  id            String      @id @default(cuid())
+  Move          Move[]
+  blackPlayerId String
+  whitePlayerId String
+  whitePlayer   User        @relation("GamesAsWhite", fields: [whitePlayerId], references: [id])
+  blackPlayer   User        @relation("GamesAsBlack", fields: [blackPlayerId], references: [id])
+  board         String      @default("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+  status        GameStatus?
+  result        GameResult?
+
+  @@index([blackPlayerId])
+  @@index([whitePlayerId])
+}
+
+model Move {
+  id         String @id @default(cuid())
+  gameId     String
+  Game       Game   @relation(fields: [gameId], references: [id])
+  moveNumber Int
+  from       String
+  to         String
+
+  @@index([gameId])
+}
+
+enum GameStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+enum GameResult {
+  WHITE_WINS
+  BLACK_WINS
+  DRAW
 }
