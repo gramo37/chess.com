@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 
-const BACKEND_URL = "http://localhost:3000"
+const BACKEND_URL = "http://localhost:3000";
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -10,13 +10,13 @@ export default function Landing() {
   };
 
   const signup = () => {
-    window.open(`${BACKEND_URL}/auth/register`)
-  }
+    window.open(`${BACKEND_URL}/auth/register`, "_self");
+  };
 
   const login = () => {
-    window.open(`${BACKEND_URL}/auth/login`)
-  }
-  
+    window.open(`${BACKEND_URL}/auth/login`, "_self");
+  };
+
   return (
     <div className="flex justify-center items-center w-screen flex-col md:flex-row pt-8 md:pt-0">
       <div className="md:p-10 p-4">
@@ -30,14 +30,20 @@ export default function Landing() {
         </div>
         <button
           onClick={startGame}
-          className="text-white border border-white py-5 px-14 hover:bg-white hover:text-black transition-all"
+          className="text-white border m-2 border-white py-5 px-14 hover:bg-white hover:text-black transition-all"
         >
           Play Online Chess
         </button>
-        <button onClick={signup}>
+        <button
+          onClick={signup}
+          className="text-white border m-2 border-white py-5 px-14 hover:bg-white hover:text-black transition-all"
+        >
           Sign Up
         </button>
-        <button onClick={login}>
+        <button
+          onClick={login}
+          className="text-white border m-2 border-white py-5 px-14 hover:bg-white hover:text-black transition-all"
+        >
           Log In
         </button>
       </div>

@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-
-const WS_URL = "ws://localhost:8080";
+import { WS_URL } from "../constants/routes";
+import { usePersonStore } from "../contexts/auth";
 
 export const useSocket = () => {
   const [socket, setSocket] = useState<WebSocket | null>(null);
+  const user = usePersonStore((state) => state.user);
 
   useEffect(() => {
-    const ws = new WebSocket(WS_URL);
+    const ws = new WebSocket(`${WS_URL}?token=${user?.token}`);
     ws.onopen = () => {
       setSocket(ws);
     };
@@ -18,7 +19,7 @@ export const useSocket = () => {
     return () => {
       ws.close();
     };
-  }, []);
+  }, [user?.token]);
 
   return socket;
 };
