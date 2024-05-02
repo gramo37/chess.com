@@ -13,6 +13,7 @@
     "@repo/ui": "*",
     "axios": "^1.6.8",
     "chess.js": "^1.0.0-beta.8",
+    "lodash": "^4.17.21",
     "react": "^18.2.0",
     "react-chessboard": "^4.5.0",
     "react-dom": "^18.2.0",
@@ -20,6 +21,7 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.0",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@typescript-eslint/eslint-plugin": "^7.2.0",

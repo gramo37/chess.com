@@ -24,11 +24,11 @@ router.post("/register", async (req, res) => {
     });
     if (user) return res.status(400).send("User already exists");
     const hashPassword = await bcrypt.hash(req.body.password, 10);
-    const newUser = await db.user.create({
+    await db.user.create({
       data: {
         email: req.body.username,
         password: hashPassword,
-        name: req.body.name
+        name: req.body.name,
       },
     });
     res.redirect(successURL);
@@ -49,24 +49,40 @@ router.post(
 );
 
 router.get("/refresh", (req, res) => {
-  if (req.user)
-    res.status(200).json({
-      user: req.user,
+  try {
+    if (req.user)
+      res.status(200).json({
+        user: req.user,
+      });
+    else
+      res.status(404).json({
+        user: null,
+        message: "User Not Found",
+      });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Something went wrong",
+      error,
     });
-  else
-    res.status(404).json({
-      user: null,
-      message: "User Not Found",
-    });
+  }
 });
 
 router.post("/logout", function (req, res, next) {
-  req.logout(function (err) {
-    if (err) {
-      return next(err);
-    }
-    res.redirect("/");
-  });
+  try {
+    req.logout(function (err) {
+      if (err) {
+        return next(err);
+      }
+      res.redirect("/");
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Something went wrong",
+      error,
+    });
+  }
 });
 
 export default router;

@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Landing from "./components/Landing";
-import Game from "./components/Game";
+import Landing from "./screens/Landing";
+import Game from "./screens/Game";
 import { useGetUser } from "./hooks/useGetUser";
 import { usePersonStore } from "./contexts/auth";
 

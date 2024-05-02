@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { WS_URL } from "../constants/routes";
 import { usePersonStore } from "../contexts/auth";
+import { useGameStore } from "../contexts/game.context";
 
-export const useSocket = () => {
-  const [socket, setSocket] = useState<WebSocket | null>(null);
+export const useInitSocket = () => {
   const user = usePersonStore((state) => state.user);
+  const { setSocket } = useGameStore(["setSocket"]);
 
   useEffect(() => {
     const ws = new WebSocket(`${WS_URL}?token=${user?.token}`);
@@ -19,7 +20,5 @@ export const useSocket = () => {
     return () => {
       ws.close();
     };
-  }, [user?.token]);
-
-  return socket;
+  }, [setSocket, user?.token]);
 };
