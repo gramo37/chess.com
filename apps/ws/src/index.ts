@@ -11,6 +11,9 @@ const gameManager = new GameManager();
 // Get all ongoing games
 db.game
   .findMany({
+    where: {
+      status: "IN_PROGRESS"
+    },
     select: {
       board: true,
       Move: {

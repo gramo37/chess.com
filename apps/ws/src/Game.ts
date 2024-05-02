@@ -39,7 +39,7 @@ export class Game {
     player1: Player,
     player2: Player,
     gameId?: string,
-    status?: string
+    status?: "IN_PROGRESS" | "COMPLETED" | "NOT_YET_STARTED"
   ) {
     this.player1 = player1;
     this.player2 = player2;
@@ -61,6 +61,10 @@ export class Game {
 
   getGameId() {
     return this.gameId;
+  }
+
+  getGameStatus() {
+    return this.status;
   }
 
   setPlayer1(player: Player) {
@@ -227,6 +231,7 @@ export class Game {
             id: this.gameId
           }
         })
+        this.status = COMPLETED;
       }
     }
 

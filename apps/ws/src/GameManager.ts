@@ -99,8 +99,8 @@ export class GameManager {
   async makeMove(socket: WebSocket, move: TMove) {
     const game = this.games.find(
       (game) =>
-        game.getPlayer1().getPlayer() === socket ||
-        game.getPlayer2().getPlayer() === socket
+        (game.getPlayer1().getPlayer() === socket ||
+        game.getPlayer2().getPlayer() === socket) && game.getGameStatus() === IN_PROGRESS
     );
     if (game) {
       await game.makeMove(socket, move);
