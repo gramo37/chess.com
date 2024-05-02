@@ -47,8 +47,8 @@ export default function Game() {
       } else if (message.type === GAMEOVER) {
         setMoves([]);
         setResult({
-          winner: message.payload.winner,
-          loser: message.payload.loser,
+          winner: message.payload.winner.color,
+          loser: message.payload.loser.color,
         });
         setIsGameOn(false);
       } else if (message.type === GAMERESTARTED) {
