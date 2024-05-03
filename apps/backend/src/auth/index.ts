@@ -4,8 +4,7 @@ import passport from "passport";
 import bcrypt from "bcrypt";
 
 const router = express.Router();
-const backendURL = process.env.backendURL ?? "http://localhost:5173";
-const successURL = `${backendURL}/game`;
+const FRONTEND_URL = process.env.FRONTEND_URL ?? "http://localhost:5173";
 
 router.get("/register", (req, res) => {
   res.render("register");
@@ -31,7 +30,7 @@ router.post("/register", async (req, res) => {
         name: req.body.name,
       },
     });
-    res.redirect(successURL);
+    res.redirect(`${FRONTEND_URL}/game`);
   } catch (error) {
     return res.status(500).json({
       message: "Something went wrong",
@@ -44,7 +43,7 @@ router.post(
   "/login",
   passport.authenticate("local", { failureRedirect: "/404notfound" }),
   function (req, res) {
-    res.redirect(successURL);
+    res.redirect(`${FRONTEND_URL}/game`);
   }
 );
 

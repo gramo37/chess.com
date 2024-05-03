@@ -23,7 +23,8 @@
     "setup:ws": "cp .env.example ./apps/ws/.env",
     "setup:frontend": "cp .env.example ./apps/frontend/.env",
     "setup:env": "yarn setup && yarn setup:backend && yarn setup:db && yarn setup:ws && yarn setup:frontend",
-    "dev:setup": "yarn setup:env && yarn && yarn generate && yarn workspace backend run build"
+    "dev:setup": "yarn setup:env && yarn && yarn generate && yarn workspace backend run build",
+    "clean": "rm -rf node_modules .env .turbo build"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",

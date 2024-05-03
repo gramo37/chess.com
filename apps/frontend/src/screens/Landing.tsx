@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
-
-const BACKEND_URL = "http://localhost:3000";
+import { BACKEND_URL } from "../constants/routes";
 
 export default function Landing() {
   const navigate = useNavigate();
