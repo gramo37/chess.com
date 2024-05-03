@@ -101,7 +101,8 @@ export class GameManager {
     const game = this.games.find(
       (game) =>
         (game.getPlayer1().getPlayer() === socket ||
-        game.getPlayer2().getPlayer() === socket) && game.getGameStatus() === IN_PROGRESS
+          game.getPlayer2().getPlayer() === socket) &&
+        game.getGameStatus() === IN_PROGRESS
     );
     if (game) {
       await game.makeMove(socket, move);
@@ -134,5 +135,31 @@ export class GameManager {
       newGame.setMoves(game.Move);
       this.games.push(newGame);
     });
+  }
+
+  initServer() {
+    // Get all ongoing games
+    db.game
+      .findMany({
+        where: {
+          status: "IN_PROGRESS",
+        },
+        select: {
+          board: true,
+          Move: {
+            select: {
+              from: true,
+              to: true,
+            },
+          },
+          id: true,
+          status: true,
+          blackPlayer: true,
+          whitePlayer: true,
+        },
+      })
+      .then((games) => {
+        this.addGames(games);
+      });
   }
 }
