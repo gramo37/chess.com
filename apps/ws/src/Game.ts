@@ -19,11 +19,7 @@ import {
 } from "./constants";
 import { db } from "./db";
 import { randomUUID } from "crypto";
-
-export type TMove = {
-  from: string;
-  to: string;
-};
+import { TGameStatus, TMove } from "./types/game.types";
 
 export class Game {
   private player1: Player;
@@ -39,7 +35,7 @@ export class Game {
     player1: Player,
     player2: Player,
     gameId?: string,
-    status?: "IN_PROGRESS" | "COMPLETED" | "NOT_YET_STARTED"
+    status?: TGameStatus
   ) {
     this.player1 = player1;
     this.player2 = player2;

@@ -7,11 +7,12 @@ import {
   WHITE,
   IN_PROGRESS,
 } from "./constants";
-import { Game, TMove } from "./Game";
+import { Game } from "./Game";
 import { Player } from "./Player";
 import { sendMessage } from "./utils";
 import { extractUser } from "./auth";
 import { db } from "./db";
+import { TMove } from "./types/game.types";
 
 export class GameManager {
   private games: Game[];
