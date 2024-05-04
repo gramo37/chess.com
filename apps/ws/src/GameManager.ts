@@ -6,6 +6,9 @@ import {
   BLACK,
   WHITE,
   IN_PROGRESS,
+  ENDGAME,
+  OFFER_DRAW,
+  REJECT_DRAW,
 } from "./constants";
 import { Game } from "./Game";
 import { Player } from "./Player";
@@ -13,6 +16,7 @@ import { sendMessage } from "./utils";
 import { extractUser } from "./auth";
 import { db } from "./db";
 import { TMove } from "./types/game.types";
+import { TEndGamePayload } from "./types";
 
 export class GameManager {
   private games: Game[];
@@ -44,6 +48,15 @@ export class GameManager {
         case MOVE:
           await self.makeMove(socket, message.move);
           break;
+        case ENDGAME:
+          await self.endGame(socket, message.payload);
+          break;
+        case OFFER_DRAW:
+          await self.offerDraw(socket);
+          break;
+        case REJECT_DRAW:
+          await self.rejectDraw(socket);
+          break;
         default:
           break;
       }
@@ -52,6 +65,64 @@ export class GameManager {
 
   removeUser(socket: WebSocket) {
     this.users = this.users.filter((user) => user.getPlayerSocket() !== socket);
+  }
+
+  async offerDraw(socket: WebSocket) {
+    const game = this.games.find(
+      (game) =>
+        (game.getPlayer1().getPlayer() === socket ||
+          game.getPlayer2().getPlayer() === socket) &&
+        game.getGameStatus() === IN_PROGRESS
+    );
+    if (game) {
+      const opponent =
+        game.getPlayer1().getPlayer() === socket
+          ? game.getPlayer2()
+          : game.getPlayer1();
+      sendMessage(opponent.getPlayer(), {
+        type: OFFER_DRAW,
+      });
+    } else
+      sendMessage(socket, {
+        type: GAMENOTFOUND,
+      });
+  }
+
+  async rejectDraw(socket: WebSocket) {
+    const game = this.games.find(
+      (game) =>
+        (game.getPlayer1().getPlayer() === socket ||
+          game.getPlayer2().getPlayer() === socket) &&
+        game.getGameStatus() === IN_PROGRESS
+    );
+    if (game) {
+      // Send Message to the opponent socket
+      const opponent =
+        game.getPlayer1().getPlayer() === socket
+          ? game.getPlayer2()
+          : game.getPlayer1();
+      sendMessage(opponent.getPlayer(), {
+        type: REJECT_DRAW,
+      });
+    } else
+      sendMessage(socket, {
+        type: GAMENOTFOUND,
+      });
+  }
+
+  async endGame(socket: WebSocket, payload: TEndGamePayload) {
+    const game = this.games.find(
+      (game) =>
+        (game.getPlayer1().getPlayer() === socket ||
+          game.getPlayer2().getPlayer() === socket) &&
+        game.getGameStatus() === IN_PROGRESS
+    );
+    if (game) {
+      await game.endGame(socket, payload);
+    } else
+      sendMessage(socket, {
+        type: GAMENOTFOUND,
+      });
   }
 
   async initGame(socket: WebSocket, token: string) {

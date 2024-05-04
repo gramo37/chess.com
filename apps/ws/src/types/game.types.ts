@@ -4,3 +4,5 @@ export type TMove = {
   from: string;
   to: string;
 };
+
+export type TGameResult = "RESIGN" | "ACCEPT_DRAW" | "CHECKMATE";

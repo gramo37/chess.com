@@ -1,7 +1,7 @@
 import { Chess } from "chess.js";
 import { WebSocket } from "ws";
 import { Player } from "./Player";
-import { broadCastMessage, sendMessage } from "./utils";
+import { broadCastMessage, sendGameOverMessage, sendMessage } from "./utils";
 import {
   GAMEOVER,
   GAMESTARTED,
@@ -16,10 +16,13 @@ import {
   WHITE_WINS,
   BLACK_WINS,
   DRAW,
+  CHECKMATE,
+  ACCEPT_DRAW,
 } from "./constants";
 import { db } from "./db";
 import { randomUUID } from "crypto";
 import { TGameStatus, TMove } from "./types/game.types";
+import { TEndGamePayload } from "./types";
 
 export class Game {
   private player1: Player;
@@ -29,7 +32,8 @@ export class Game {
   private moveCount: number;
   private startTime: Date;
   private gameId: string;
-  private status: string;
+  private status: TGameStatus;
+  private chess: Chess;
 
   constructor(
     player1: Player,
@@ -45,6 +49,7 @@ export class Game {
     this.startTime = new Date();
     this.gameId = gameId ?? randomUUID();
     this.status = status ?? NOT_YET_STARTED;
+    this.chess = new Chess();
   }
 
   getPlayer1() {
@@ -105,7 +110,7 @@ export class Game {
     }
 
     // 2: The move is valid according to chess rules
-    const chess = new Chess(this.board);
+    const chess = this.chess;
     try {
       chess.move(move);
     } catch (e) {
@@ -147,15 +152,7 @@ export class Game {
       }),
     ]);
 
-    sendMessage(player2, {
-      type: MOVESUCCESS,
-      payload: {
-        board: this.board,
-        moves: this.moves,
-      },
-    });
-
-    sendMessage(player1, {
+    broadCastMessage([player1, player2], {
       type: MOVESUCCESS,
       payload: {
         board: this.board,
@@ -166,69 +163,40 @@ export class Game {
     // Check for draw or checkmate
     let result: "WHITE_WINS" | "BLACK_WINS" | "DRAW" | null = null;
     if (chess.isGameOver()) {
-      if (socket === player1) {
-        broadCastMessage([player1, player2], {
-          type: GAMEOVER,
-          payload: {
-            winner: {
-              id: this.player1.getPlayerId(),
-              name: this.player1.getPlayerName(),
-              color: this.player1.getPlayerColor()
-            },
-            loser: {
-              id: this.player2.getPlayerId(),
-              name: this.player2.getPlayerName(),
-              color: this.player2.getPlayerColor()
-            },
-            status: COMPLETED
-          },
-        })
-        result = this.player1.getPlayerColor() === WHITE ? WHITE_WINS : BLACK_WINS;
-      } else {
-        broadCastMessage([player1, player2], {
-          type: GAMEOVER,
-          payload: {
-            winner: {
-              id: this.player2.getPlayerId(),
-              name: this.player2.getPlayerName(),
-              color: this.player2.getPlayerColor()
-            },
-            loser: {
-              id: this.player1.getPlayerId(),
-              name: this.player1.getPlayerName(),
-              color: this.player1.getPlayerColor()
-            },
-            status: COMPLETED,
-          },
-        })
-        result = this.player2.getPlayerColor() === WHITE ? WHITE_WINS : BLACK_WINS;
-      }
+      const winner =
+        this.player1.getPlayer() === socket ? this.player1 : this.player2;
+      const loser =
+        this.player1.getPlayer() === socket ? this.player2 : this.player1;
+      result = sendGameOverMessage(winner, loser, CHECKMATE);
+    }
 
-      if (chess.isDraw()) {
-        broadCastMessage([player1, player2], {
-          type: GAMEOVER,
-          payload: {
-            winner: null,
-            loser: null,
-            status: COMPLETED
-          },
-        })
-        result = DRAW
-      }
+    if (chess.isDraw() || chess.isThreefoldRepetition()) {
+      broadCastMessage([player1, player2], {
+        type: GAMEOVER,
+        payload: {
+          winner: null,
+          loser: null,
+          status: COMPLETED,
+          result: DRAW,
+        },
+      });
+      result = DRAW;
+    }
 
-      // Update the result of game in DB
-      if (result) {
-        await db.game.update({
-          data: {
-            status: COMPLETED,
-            result
-          },
-          where: {
-            id: this.gameId
-          }
-        })
-        this.status = COMPLETED;
-      }
+    // Update the result of game in DB
+    if (result) {
+      await db.game.update({
+        data: {
+          status: COMPLETED,
+          result,
+          gameOutCome: result === DRAW ? DRAW : CHECKMATE,
+        },
+        where: {
+          id: this.gameId,
+        },
+      });
+      this.status = COMPLETED;
+      return;
     }
 
     this.moveCount += 1;
@@ -286,5 +254,31 @@ export class Game {
         color: this.gameId ? this.player2.getPlayerColor() : BLACK,
       },
     });
+  }
+
+  async endGame(socket: WebSocket, payload: TEndGamePayload) {
+    const winner =
+      this.player1.getPlayer() === socket ? this.player2 : this.player1;
+    const loser =
+      this.player1.getPlayer() === socket ? this.player1 : this.player2;
+    let result: "WHITE_WINS" | "BLACK_WINS" | "DRAW" = sendGameOverMessage(
+      winner,
+      loser,
+      payload.status
+    );
+    if (payload.status === ACCEPT_DRAW) result = DRAW;
+    if (result) {
+      await db.game.update({
+        data: {
+          status: COMPLETED,
+          result,
+          gameOutCome: payload.status,
+        },
+        where: {
+          id: this.gameId,
+        },
+      });
+      this.status = COMPLETED;
+    }
   }
 }

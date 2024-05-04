@@ -7,10 +7,16 @@ import Moves from "../components/game/Moves";
 import { useGameStore } from "../contexts/game.context";
 import NewGame from "../components/game/NewGame";
 import {
+  ACCEPT_DRAW,
+  DRAW,
+  ENDGAME,
   GAMEOVER,
   GAMERESTARTED,
   GAMESTARTED,
+  MOVE,
   MOVESUCCESS,
+  OFFER_DRAW,
+  REJECT_DRAW,
 } from "../constants";
 import { useEffect } from "react";
 
@@ -40,6 +46,25 @@ export default function Game() {
   ]);
   useInitSocket();
 
+  const acceptDraw = () => {
+    socket?.send(
+      JSON.stringify({
+        type: ENDGAME,
+        payload: {
+          status: ACCEPT_DRAW,
+        },
+      })
+    );
+  };
+
+  const rejectDraw = () => {
+    socket?.send(
+      JSON.stringify({
+        type: REJECT_DRAW,
+      })
+    );
+  };
+
   useEffect(() => {
     if (!socket) return;
     socket.onmessage = (event) => {
@@ -53,25 +78,35 @@ export default function Game() {
       } else if (message.type === GAMEOVER) {
         setMoves([]);
         setResult({
-          winner: message.payload.winner.color,
-          loser: message.payload.loser.color,
+          winner: message.payload.winner?.color,
+          loser: message.payload.loser?.color,
+          gameResult: message.payload?.result,
         });
         setIsGameStarted(false);
       } else if (message.type === GAMERESTARTED) {
         setBoard(message.payload.board);
         setMoves(message.payload.moves);
         setColor(message.payload.color);
+      } else if (message.type === OFFER_DRAW) {
+        if (confirm("Opponents was a draw. Do you want to draw ?")) {
+          acceptDraw();
+        } else {
+          rejectDraw();
+        }
+      } else if(message.type === REJECT_DRAW) {
+        alert("Opponent rejected the offer of draw")
       }
     };
     return () => {
       socket.onmessage = null;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setBoard, setColor, setIsGameStarted, setMoves, setResult, socket]);
 
   const makeAMove = (move: TMove) => {
     socket?.send(
       JSON.stringify({
-        type: "move",
+        type: MOVE,
         move,
       })
     );
@@ -100,10 +135,14 @@ export default function Game() {
       <div className="flex-1 border border-white m-2 flex justify-center items-center min-h-52">
         {isGameStarted && <Moves />}
         <div className="flex flex-col items-center justify-center">
-          {result && (
-            <h1 className="text-center text-white text-4xl">
-              {result.winner === color ? "You Won" : "You Lose"}
-            </h1>
+          {[DRAW, ACCEPT_DRAW].includes(result?.gameResult ?? "") ? (
+            <h1 className="text-center text-white text-4xl">Game is Drawn</h1>
+          ) : (
+            result && (
+              <h1 className="text-center text-white text-4xl">
+                {result.winner === color ? "You Won" : "You Lose"}
+              </h1>
+            )
           )}
           {!isGameStarted && <NewGame />}
         </div>

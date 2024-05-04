@@ -5,10 +5,11 @@ import { useGameStore } from "../../contexts/game.context";
 import { usePersonStore } from "../../contexts/auth";
 
 const NewGame = () => {
-  const { setIsGameStarted, setResult, socket } = useGameStore([
+  const { setIsGameStarted, setResult, socket, setColor } = useGameStore([
     "setIsGameStarted",
     "setResult",
     "socket",
+    "setColor"
   ]);
   const updateUser = usePersonStore((state) => state.updateUser);
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const NewGame = () => {
   const startGame = () => {
     setIsGameStarted(true);
     setResult(null);
+    setColor(null)
     socket?.send(
       JSON.stringify({
         type: INIT_GAME,
