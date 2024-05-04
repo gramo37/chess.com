@@ -54,9 +54,9 @@ router.get("/refresh", (req, res) => {
         user: req.user,
       });
     else
-      res.status(404).json({
+      res.status(401).json({
         user: null,
-        message: "User Not Found",
+        message: "Unauthorized",
       });
   } catch (error) {
     console.log(error);

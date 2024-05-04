@@ -1,23 +1,44 @@
 import { useNavigate } from "react-router-dom";
 import { INIT_GAME } from "../../constants";
-import { LOGOUT_URL } from "../../constants/routes";
+import { BACKEND_URL } from "../../constants/routes";
 import { useGameStore } from "../../contexts/game.context";
 import { usePersonStore } from "../../contexts/auth";
+import axios from "axios";
 
 const NewGame = () => {
   const { setIsGameStarted, setResult, socket, setColor } = useGameStore([
     "setIsGameStarted",
     "setResult",
     "socket",
-    "setColor"
+    "setColor",
   ]);
   const updateUser = usePersonStore((state) => state.updateUser);
   const navigate = useNavigate();
 
+  // Make a API call and get the game inprogress for the user
+  // const { data } = useQuery({
+  //   queryKey: ["myGames"],
+  //   queryFn: async () => {
+  //     const res = await axios.get(`${BACKEND_URL}/me/games`, {
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       withCredentials: true,
+  //     });
+  //     return res.data;
+  //   },
+  // });
+  // useEffect(() => {
+  //   if (data?.games) {
+  //     startGame();
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [data]);
+
   const startGame = () => {
     setIsGameStarted(true);
     setResult(null);
-    setColor(null)
+    setColor(null);
     socket?.send(
       JSON.stringify({
         type: INIT_GAME,
@@ -26,12 +47,11 @@ const NewGame = () => {
   };
 
   async function logout() {
-    await fetch(`${LOGOUT_URL}`, {
-      method: "POST",
+    await axios.get(`${BACKEND_URL}/auth/logout`, {
       headers: {
         "Content-Type": "application/json",
       },
-      credentials: "include",
+      withCredentials: true,
     });
     updateUser(null);
     navigate("/");

@@ -17,6 +17,7 @@ import {
   MOVESUCCESS,
   OFFER_DRAW,
   REJECT_DRAW,
+  RESIGN,
 } from "../constants";
 import { useEffect } from "react";
 
@@ -45,6 +46,7 @@ export default function Game() {
     "socket",
   ]);
   useInitSocket();
+  // const queryClient = useQueryClient();
 
   const acceptDraw = () => {
     socket?.send(
@@ -83,6 +85,7 @@ export default function Game() {
           gameResult: message.payload?.result,
         });
         setIsGameStarted(false);
+        // queryClient.invalidateQueries({ queryKey: ["myGames"] });
       } else if (message.type === GAMERESTARTED) {
         setBoard(message.payload.board);
         setMoves(message.payload.moves);
@@ -93,15 +96,22 @@ export default function Game() {
         } else {
           rejectDraw();
         }
-      } else if(message.type === REJECT_DRAW) {
-        alert("Opponent rejected the offer of draw")
+      } else if (message.type === REJECT_DRAW) {
+        alert("Opponent rejected the offer of draw");
       }
     };
     return () => {
       socket.onmessage = null;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setBoard, setColor, setIsGameStarted, setMoves, setResult, socket]);
+
+  useEffect(() => {
+    if(result?.gameResult === RESIGN && result.winner === color) {
+      alert("Congrats. You Won. Opponent has resigned")
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isGameStarted, result]);
 
   const makeAMove = (move: TMove) => {
     socket?.send(

@@ -5,6 +5,7 @@ import passport from "passport";
 import { initPassport } from "./auth/passport";
 import dotenv from "dotenv";
 import cors from "cors";
+import router from "./routes";
 
 const expressSession = require("express-session");
 // var SQLiteStore = require('connect-sqlite3')(expressSession);
@@ -55,9 +56,7 @@ app.get("/404notfound", (req, res) => {
   res.status(404).send("User Not Found!");
 })
 
-app.get("/", (req, res) => {
-  res.render("index");
-});
+app.use("/me", router);
 
 app.use("/auth", auth);
 
