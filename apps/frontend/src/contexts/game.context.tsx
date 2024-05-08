@@ -6,16 +6,22 @@ import { pick } from "lodash";
 type TGame = {
   board: string;
   moves: TMove[];
+  sans: string[];
   isGameStarted: boolean;
   color: TColor;
   result: TGameResult;
   socket: WebSocket | null;
 };
 
+type Move = TMove & {
+  san: string
+}
+
 type TAction = {
   setBoard: (board: string) => void;
   setIsGameStarted: (status: boolean) => void;
-  setMoves: (moves: TMove[]) => void;
+  setMoves: (moves: Move[]) => void;
+  setSans: (sans: string[]) => void;
   setColor: (color: TColor) => void;
   setResult: (result: TGameResult) => void;
   setSocket: (socket: WebSocket | null) => void;
@@ -26,6 +32,7 @@ type TGameState = TAction & TGame;
 const INITIAL_STATE = {
   board: "",
   moves: [],
+  sans:[],
   isGameStarted: false,
   color: null,
   result: null,
@@ -41,8 +48,11 @@ export const useStore = create<TGame & TAction>((set) => ({
   setIsGameStarted: (status: boolean) => {
     set({ isGameStarted: status });
   },
-  setMoves: (moves: TMove[]) => {
+  setMoves: (moves: Move[]) => {
     set({ moves });
+  },
+  setSans: (sans: string[]) => {
+    set({ sans })
   },
   setColor: (color: TColor) => {
     set({ color });

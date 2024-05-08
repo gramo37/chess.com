@@ -1,12 +1,12 @@
-import {
-  ENDGAME,
-  OFFER_DRAW,
-  RESIGN,
-} from "../../constants";
+import { ENDGAME, OFFER_DRAW, RESIGN } from "../../constants";
 import { useGameStore } from "../../contexts/game.context";
 
 const Moves = () => {
-  const { color, moves, socket } = useGameStore(["color", "moves", "socket"]);
+  const { color, sans, socket } = useGameStore([
+    "color",
+    "socket",
+    "sans",
+  ]);
 
   const OfferDraw = () => {
     socket?.send(
@@ -38,13 +38,13 @@ const Moves = () => {
         )}
       </div>
       <div className="overflow-y-auto h-[390px]">
-        {moves.map((move, i) => {
+        {sans?.map((san, i) => {
           return (
             <p
               key={i}
               className="text-center text-white text-2xl border border-white my-2 mx-6 font-semibold font-sans"
             >
-              {i % 2 === 0 ? "white" : "black"}: {move.from} &rarr; {move.to}
+              {i % 2 === 0 ? "white" : "black"}: {san}
             </p>
           );
         })}

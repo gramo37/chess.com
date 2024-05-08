@@ -45,6 +45,7 @@ model Move {
   moveNumber Int
   from       String
   to         String
+  san        String
 
   @@index([gameId])
 }

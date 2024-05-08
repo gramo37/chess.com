@@ -47,7 +47,7 @@ const NewGame = () => {
   };
 
   async function logout() {
-    await axios.get(`${BACKEND_URL}/auth/logout`, {
+    await axios.post(`${BACKEND_URL}/auth/logout`, {
       headers: {
         "Content-Type": "application/json",
       },

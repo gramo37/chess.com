@@ -29,6 +29,7 @@ export class Game {
   private player2: Player;
   private board: string;
   private moves: TMove[];
+  private sans: String[];
   private moveCount: number;
   private startTime: Date;
   private gameId: string;
@@ -45,6 +46,7 @@ export class Game {
     this.player2 = player2;
     this.board = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     this.moves = [];
+    this.sans = [];
     this.moveCount = 0;
     this.startTime = new Date();
     this.gameId = gameId ?? randomUUID();
@@ -81,6 +83,10 @@ export class Game {
     this.moveCount = moves?.length;
   }
 
+  setSans(sans: String[]) {
+    this.sans = sans;
+  }
+
   setboard(board: string) {
     this.board = board;
   }
@@ -111,8 +117,10 @@ export class Game {
 
     // 2: The move is valid according to chess rules
     const chess = this.chess;
+    let san = ""
     try {
-      chess.move(move);
+      const { san: _san } = chess.move(move);
+      san = _san;
     } catch (e) {
       console.log(e);
       sendMessage(socket, {
@@ -126,6 +134,7 @@ export class Game {
 
     // Make the move
     this.moves.push(move);
+    this.sans.push(san);
     this.board = chess.fen();
 
     // Update the move in DB
@@ -140,6 +149,7 @@ export class Game {
           moveNumber: this.moveCount + 1,
           from: move.from,
           to: move.to,
+          san
         },
       }),
       db.game.update({
@@ -157,6 +167,7 @@ export class Game {
       payload: {
         board: this.board,
         moves: this.moves,
+        sans: this.sans
       },
     });
 
@@ -243,6 +254,7 @@ export class Game {
         board: this.board,
         moves: this.moves,
         color: this.gameId ? this.player1.getPlayerColor() : WHITE,
+        sans: this.sans
       },
     });
 
@@ -252,6 +264,7 @@ export class Game {
         board: this.board,
         moves: this.moves,
         color: this.gameId ? this.player2.getPlayerColor() : BLACK,
+        sans: this.sans
       },
     });
   }

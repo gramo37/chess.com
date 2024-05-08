@@ -30,6 +30,7 @@ export default function Game() {
     result,
     setBoard,
     setMoves,
+    setSans,
     setColor,
     setResult,
     setIsGameStarted,
@@ -40,6 +41,7 @@ export default function Game() {
     "isGameStarted",
     "setIsGameStarted",
     "setMoves",
+    "setSans",
     "color",
     "setColor",
     "result",
@@ -75,6 +77,7 @@ export default function Game() {
       if (message.type === MOVESUCCESS) {
         setBoard(message.payload.board);
         setMoves(message.payload.moves);
+        setSans(message.payload.sans);
       } else if (message.type === GAMESTARTED) {
         setColor(message.payload.color);
         setBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
@@ -90,6 +93,7 @@ export default function Game() {
       } else if (message.type === GAMERESTARTED) {
         setBoard(message.payload.board);
         setMoves(message.payload.moves);
+        setSans(message.payload.sans);
         setColor(message.payload.color);
       } else if (message.type === OFFER_DRAW) {
         if (confirm("Opponents was a draw. Do you want to draw ?")) {

@@ -203,7 +203,12 @@ export class GameManager {
       this.users.push(player2);
       const newGame = new Game(player2, player1, game.id, game.status);
       newGame.setboard(game.board);
-      newGame.setMoves(game.Move);
+      newGame.setMoves(
+        game.Move.map((move: TMove) => ({ from: move.from, to: move.to }))
+      );
+      newGame.setSans(
+        game.Move.map((move: TMove & { san: string }) => move.san)
+      );
       this.games.push(newGame);
     });
   }
@@ -221,6 +226,7 @@ export class GameManager {
             select: {
               from: true,
               to: true,
+              san: true,
             },
           },
           id: true,
