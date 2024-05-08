@@ -158,7 +158,7 @@ export class GameManager {
       const player = new Player(socket, BLACK, token, user.name, user.id);
       // Avoid creating game between the same player.
       // Eg -> When a player opens the same link in the same browser
-      if (this.pendingUser.getPlayerToken() !== player.getPlayerToken()) {
+      if (this.pendingUser.getPlayerId() !== user.id) {
         this.users.push(player);
         const game = new Game(this.pendingUser, player);
         await game.createGame();

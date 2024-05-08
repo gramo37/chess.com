@@ -1,7 +1,7 @@
 import { Chessboard } from "react-chessboard";
 import { useInitSocket } from "../hooks/useSocket";
 import { Square } from "chess.js";
-// import { Piece } from "react-chessboard/dist/chessboard/types";
+import { Piece } from "react-chessboard/dist/chessboard/types";
 import { TMove } from "../types/game";
 import Moves from "../components/game/Moves";
 import { useGameStore } from "../contexts/game.context";
@@ -20,6 +20,7 @@ import {
   RESIGN,
 } from "../constants";
 import { useEffect } from "react";
+import { isPromotion } from "../utils/game";
 
 export default function Game() {
   const {
@@ -122,9 +123,16 @@ export default function Game() {
     );
   };
 
-  function onDrop(sourceSquare: Square, targetSquare: Square) {
-    // piece: Piece) {
-    // TODO: Create a onPromotionCheck function and send promotion if true
+  function onDrop(sourceSquare: Square, targetSquare: Square, piece: Piece) {
+    if(isPromotion(targetSquare, piece)) {
+      const promotion = piece[1].toLowerCase()
+      makeAMove({
+        from: sourceSquare,
+        to: targetSquare,
+        promotion
+      });
+      return true;
+    }
     makeAMove({
       from: sourceSquare,
       to: targetSquare,
