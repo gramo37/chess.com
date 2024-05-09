@@ -6,6 +6,7 @@ import { initPassport } from "./auth/passport";
 import dotenv from "dotenv";
 import cors from "cors";
 import router from "./routes";
+import { db } from "./db";
 
 const expressSession = require("express-session");
 // var SQLiteStore = require('connect-sqlite3')(expressSession);
@@ -54,6 +55,22 @@ app.get("/error", (req, res) => {
 
 app.get("/404notfound", (req, res) => {
   res.status(404).send("User Not Found!");
+})
+
+app.get("/active_users", async (req, res) => {
+  try {
+    const games = await db.game.count({
+      where: {
+        status: "IN_PROGRESS"
+      }
+    })
+    res.status(200).json({
+      games
+    })
+  } catch (error) {
+    console.log(error)
+    res.status(500).send("Something Went Wrong!")
+  }
 })
 
 app.use("/me", router);

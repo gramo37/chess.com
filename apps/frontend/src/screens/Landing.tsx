@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { BACKEND_URL } from "../constants/routes";
+import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -16,6 +18,19 @@ export default function Landing() {
     window.open(`${BACKEND_URL}/auth/login`, "_self");
   };
 
+  const { data } = useQuery({
+    queryKey: ["myGames"],
+    queryFn: async () => {
+      const res = await axios.get(`${BACKEND_URL}/active_users`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
+      });
+      return res.data;
+    },
+  });
+
   return (
     <div className="flex justify-center items-center w-screen flex-col md:flex-row pt-8 md:pt-0">
       <div className="md:p-10 p-4">
@@ -26,6 +41,7 @@ export default function Landing() {
           <h1 className="text-white font-serif font-bold text-4xl text-center italic">
             Worlds 3rd best Online Chess Platform
           </h1>
+          <p className="text-white">Active User: {data?.games * 2 ?? 0}</p>
         </div>
         <button
           onClick={startGame}
