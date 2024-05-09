@@ -89,6 +89,7 @@ export class Game {
 
   setboard(board: string) {
     this.board = board;
+    this.chess = new Chess(board)
   }
 
   async makeMove(socket: WebSocket, move: TMove) {
@@ -236,6 +237,9 @@ export class Game {
         type: GAMESTARTED,
         payload: {
           color: this.gameId ? this.player1.getPlayerColor() : WHITE,
+          opponent: {
+            name: this.getPlayer2().getPlayerName()
+          }
         },
       });
 
@@ -243,6 +247,9 @@ export class Game {
         type: GAMESTARTED,
         payload: {
           color: this.gameId ? this.player2.getPlayerColor() : BLACK,
+          opponent: {
+            name: this.getPlayer1().getPlayerName()
+          }
         },
       });
 
@@ -254,7 +261,10 @@ export class Game {
         board: this.board,
         moves: this.moves,
         color: this.gameId ? this.player1.getPlayerColor() : WHITE,
-        sans: this.sans
+        sans: this.sans,
+        opponent: {
+          name: this.getPlayer2().getPlayerName()
+        }
       },
     });
 
@@ -264,7 +274,10 @@ export class Game {
         board: this.board,
         moves: this.moves,
         color: this.gameId ? this.player2.getPlayerColor() : BLACK,
-        sans: this.sans
+        sans: this.sans,
+        opponent: {
+          name: this.getPlayer1().getPlayerName()
+        }
       },
     });
   }

@@ -35,6 +35,8 @@ export default function Game() {
     setResult,
     setIsGameStarted,
     socket,
+    opponent,
+    setOpponent
   } = useGameStore([
     "board",
     "setBoard",
@@ -47,6 +49,8 @@ export default function Game() {
     "result",
     "setResult",
     "socket",
+    "opponent",
+    "setOpponent"
   ]);
   useInitSocket();
   // const queryClient = useQueryClient();
@@ -81,6 +85,7 @@ export default function Game() {
       } else if (message.type === GAMESTARTED) {
         setColor(message.payload.color);
         setBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        setOpponent(message.payload.opponent)
       } else if (message.type === GAMEOVER) {
         setMoves([]);
         setResult({
@@ -95,6 +100,7 @@ export default function Game() {
         setMoves(message.payload.moves);
         setSans(message.payload.sans);
         setColor(message.payload.color);
+        setOpponent(message.payload.opponent)
       } else if (message.type === OFFER_DRAW) {
         if (confirm("Opponents was a draw. Do you want to draw ?")) {
           acceptDraw();
@@ -146,6 +152,7 @@ export default function Game() {
 
   return (
     <div className="flex border justify-between min-w-96 lg:flex-row flex-col">
+      <p className="text-white">Opponent Name: {opponent?.name ?? ""}</p>
       <div className="flex-1 flex max-w-2xl justify-center items-center p-3">
         <Chessboard
           position={board}
