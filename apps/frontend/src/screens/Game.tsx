@@ -13,13 +13,14 @@ import {
   GAMEOVER,
   GAMERESTARTED,
   GAMESTARTED,
+  INVALID_MOVE,
   MOVE,
   MOVESUCCESS,
   OFFER_DRAW,
   REJECT_DRAW,
   RESIGN,
 } from "../constants";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { isPromotion } from "../utils/game";
 
 export default function Game() {
@@ -36,7 +37,7 @@ export default function Game() {
     setIsGameStarted,
     socket,
     opponent,
-    setOpponent
+    setOpponent,
   } = useGameStore([
     "board",
     "setBoard",
@@ -50,10 +51,12 @@ export default function Game() {
     "setResult",
     "socket",
     "opponent",
-    "setOpponent"
+    "setOpponent",
   ]);
   useInitSocket();
   // const queryClient = useQueryClient();
+
+  const [loading, setLoading] = useState(false);
 
   const acceptDraw = () => {
     socket?.send(
@@ -82,10 +85,11 @@ export default function Game() {
         setBoard(message.payload.board);
         setMoves(message.payload.moves);
         setSans(message.payload.sans);
+        setLoading(false);
       } else if (message.type === GAMESTARTED) {
         setColor(message.payload.color);
         setBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-        setOpponent(message.payload.opponent)
+        setOpponent(message.payload.opponent);
       } else if (message.type === GAMEOVER) {
         setMoves([]);
         setResult({
@@ -100,7 +104,7 @@ export default function Game() {
         setMoves(message.payload.moves);
         setSans(message.payload.sans);
         setColor(message.payload.color);
-        setOpponent(message.payload.opponent)
+        setOpponent(message.payload.opponent);
       } else if (message.type === OFFER_DRAW) {
         if (confirm("Opponents was a draw. Do you want to draw ?")) {
           acceptDraw();
@@ -109,6 +113,8 @@ export default function Game() {
         }
       } else if (message.type === REJECT_DRAW) {
         alert("Opponent rejected the offer of draw");
+      } else if(message.type === INVALID_MOVE) {
+        setLoading(false);
       }
     };
     return () => {
@@ -118,13 +124,14 @@ export default function Game() {
   }, [setBoard, setColor, setIsGameStarted, setMoves, setResult, socket]);
 
   useEffect(() => {
-    if(result?.gameResult === RESIGN && result.winner === color) {
-      alert("Congrats. You Won. Opponent has resigned")
+    if (result?.gameResult === RESIGN && result.winner === color) {
+      alert("Congrats. You Won. Opponent has resigned");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isGameStarted, result]);
 
   const makeAMove = (move: TMove) => {
+    setLoading(true);
     socket?.send(
       JSON.stringify({
         type: MOVE,
@@ -134,12 +141,12 @@ export default function Game() {
   };
 
   function onDrop(sourceSquare: Square, targetSquare: Square, piece: Piece) {
-    if(isPromotion(targetSquare, piece)) {
-      const promotion = piece[1].toLowerCase()
+    if (isPromotion(targetSquare, piece)) {
+      const promotion = piece[1].toLowerCase();
       makeAMove({
         from: sourceSquare,
         to: targetSquare,
-        promotion
+        promotion,
       });
       return true;
     }
@@ -154,6 +161,14 @@ export default function Game() {
     <div className="flex border justify-between min-w-96 lg:flex-row flex-col">
       <p className="text-white">Opponent Name: {opponent?.name ?? ""}</p>
       <div className="flex-1 flex max-w-2xl justify-center items-center p-3">
+        {loading && (
+          <div
+            id="overlay"
+            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
+          >
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
+          </div>
+        )}
         <Chessboard
           position={board}
           // boardWidth={500}

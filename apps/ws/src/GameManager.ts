@@ -17,6 +17,7 @@ import { extractUser } from "./auth";
 import { db } from "./db";
 import { TMove } from "./types/game.types";
 import { TEndGamePayload } from "./types";
+import { seedBoard } from "./utils/game";
 
 export class GameManager {
   private games: Game[];
@@ -202,9 +203,10 @@ export class GameManager {
       this.users.push(player1);
       this.users.push(player2);
       const newGame = new Game(player2, player1, game.id, game.status);
-      newGame.setboard(game.board);
+      const chess = seedBoard(game.Move.map((move: TMove) => ({ from: move.from, to: move.to, promotion: move?.promotion })))
+      newGame.setboard(chess.fen());
       newGame.setMoves(
-        game.Move.map((move: TMove) => ({ from: move.from, to: move.to }))
+        game.Move.map((move: TMove) => ({ from: move.from, to: move.to, promotion: move?.promotion }))
       );
       newGame.setSans(
         game.Move.map((move: TMove & { san: string }) => move.san)
@@ -227,6 +229,7 @@ export class GameManager {
               from: true,
               to: true,
               san: true,
+              promotion: true
             },
           },
           id: true,
