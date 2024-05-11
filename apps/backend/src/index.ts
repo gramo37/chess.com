@@ -7,6 +7,8 @@ import dotenv from "dotenv";
 import cors from "cors";
 import router from "./routes";
 import { db } from "./db";
+import cron from "node-cron";
+import { connect as connectToRedis, sendMovesToDB } from "./db/redis";
 
 const expressSession = require("express-session");
 // var SQLiteStore = require('connect-sqlite3')(expressSession);
@@ -18,6 +20,7 @@ const ejs = require("ejs");
 const PORT = process.env.BACKEND_PORT ?? 3000;
 
 initPassport(passport);
+connectToRedis();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -76,6 +79,10 @@ app.get("/active_users", async (req, res) => {
 app.use("/me", router);
 
 app.use("/auth", auth);
+
+cron.schedule('*/10 * * * * *', async function () {
+  await sendMovesToDB()
+});
 
 app.listen(PORT, () => {
   console.log("Connected to PORT: ", PORT);

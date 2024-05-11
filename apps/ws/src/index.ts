@@ -1,7 +1,7 @@
 import { WebSocketServer } from "ws";
 import { GameManager } from "./GameManager";
 import url from "url";
-import { db } from "./db";
+import { connect } from "./db/redis";
 
 const PORT = process.env.WEBSOCKET_PORT ?? 8080;
 
@@ -19,4 +19,5 @@ wss.on("connection", async function connection(ws, req) {
   });
 });
 
+connect();
 console.log("Done");

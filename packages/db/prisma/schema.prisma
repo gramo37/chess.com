@@ -46,6 +46,7 @@ model Move {
   from       String
   to         String
   san        String
+  promotion  String?
 
   @@index([gameId])
 }

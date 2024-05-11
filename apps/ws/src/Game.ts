@@ -1,7 +1,7 @@
 import { Chess } from "chess.js";
 import { WebSocket } from "ws";
 import { Player } from "./Player";
-import { broadCastMessage, sendGameOverMessage, sendMessage } from "./utils";
+import { broadCastMessage, sendMessage } from "./utils";
 import {
   GAMEOVER,
   GAMESTARTED,
@@ -23,6 +23,8 @@ import { db } from "./db";
 import { randomUUID } from "crypto";
 import { TGameStatus, TMove } from "./types/game.types";
 import { TEndGamePayload } from "./types";
+import { sendGameOverMessage } from "./utils/game";
+import { addMoveToRedis } from "./utils/redis";
 
 export class Game {
   private player1: Player;
@@ -139,29 +141,19 @@ export class Game {
     this.board = chess.fen();
 
     // Update the move in DB
-    await db.$transaction([
-      db.move.create({
-        data: {
-          Game: {
-            connect: {
-              id: this.gameId,
-            },
-          },
-          moveNumber: this.moveCount + 1,
-          from: move.from,
-          to: move.to,
-          san
-        },
-      }),
-      db.game.update({
-        data: {
-          board: this.board,
-        },
-        where: {
-          id: this.gameId,
-        },
-      }),
-    ]);
+    // Add the move to redis
+    try {
+      await addMoveToRedis({
+        gameId: this.gameId,
+        moveNumber: this.moveCount + 1,
+        from: move.from,
+        to: move.to,
+        san,
+        promotion: move.promotion
+      });
+    } catch (error) {
+      console.log(error)
+    }
 
     broadCastMessage([player1, player2], {
       type: MOVESUCCESS,
@@ -202,6 +194,7 @@ export class Game {
           status: COMPLETED,
           result,
           gameOutCome: result === DRAW ? DRAW : CHECKMATE,
+          board: this.board
         },
         where: {
           id: this.gameId,
@@ -299,6 +292,7 @@ export class Game {
           status: COMPLETED,
           result,
           gameOutCome: payload.status,
+          board: this.board
         },
         where: {
           id: this.gameId,
