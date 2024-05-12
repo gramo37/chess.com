@@ -98,6 +98,7 @@ export default function Game() {
           gameResult: message.payload?.result,
         });
         setIsGameStarted(false);
+        setLoading(false);
         // queryClient.invalidateQueries({ queryKey: ["myGames"] });
       } else if (message.type === GAMERESTARTED) {
         setBoard(message.payload.board);
@@ -126,12 +127,14 @@ export default function Game() {
   useEffect(() => {
     if (result?.gameResult === RESIGN && result.winner === color) {
       alert("Congrats. You Won. Opponent has resigned");
+    } else if (["DRAW", "ACCEPT_DRAW"].includes(result?.gameResult ?? "")){
+      alert("Game is Drawn!");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isGameStarted, result]);
 
   const makeAMove = (move: TMove) => {
-    setLoading(true);
+    if(isGameStarted) setLoading(true);
     socket?.send(
       JSON.stringify({
         type: MOVE,
