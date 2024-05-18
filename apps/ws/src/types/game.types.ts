@@ -6,4 +6,4 @@ export type TMove = {
   promotion?: string
 };
 
-export type TGameResult = "RESIGN" | "ACCEPT_DRAW" | "CHECKMATE";
+export type TGameResult = "RESIGN" | "ACCEPT_DRAW" | "CHECKMATE" | "TIMER_EXPIRED";

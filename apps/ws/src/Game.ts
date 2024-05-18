@@ -13,11 +13,10 @@ import {
   NOT_YET_STARTED,
   GAMERESTARTED,
   COMPLETED,
-  WHITE_WINS,
-  BLACK_WINS,
   DRAW,
   CHECKMATE,
   ACCEPT_DRAW,
+  INITIAL_TIME,
 } from "./constants";
 import { db } from "./db";
 import { randomUUID } from "crypto";
@@ -37,6 +36,11 @@ export class Game {
   private gameId: string;
   private status: TGameStatus;
   private chess: Chess;
+  private player1TimeLeft: number;
+  private player2TimeLeft: number;
+
+  private timer1: any;
+  private timer2: any;
 
   constructor(
     player1: Player,
@@ -54,6 +58,8 @@ export class Game {
     this.gameId = gameId ?? randomUUID();
     this.status = status ?? NOT_YET_STARTED;
     this.chess = new Chess();
+    this.player1TimeLeft = INITIAL_TIME;
+    this.player2TimeLeft = INITIAL_TIME;
   }
 
   getPlayer1() {
@@ -91,7 +97,47 @@ export class Game {
 
   setboard(board: string) {
     this.board = board;
-    this.chess = new Chess(board)
+    this.chess = new Chess(board);
+  }
+
+  startPlayer1Timer() {
+    // Start reducing player1 TimeLeft by 1 every sec
+    this.timer1 = setInterval(() => {
+      this.player1TimeLeft -= 1;
+      if (this.player1TimeLeft <= 0) {
+        if(this.status !== COMPLETED) this.endGame(this.player1.getPlayer(), { status: "TIMER_EXPIRED" });
+        clearInterval(this.timer1);
+      }
+    }, 1000);
+  }
+
+  startPlayer2Timer() {
+    // Start reducing player2 TimeLeft by 1 every sec
+    this.timer2 = setInterval(() => {
+      this.player2TimeLeft -= 1;
+      if (this.player2TimeLeft <= 0) {
+        if(this.status !== COMPLETED) this.endGame(this.player2.getPlayer(), { status: "TIMER_EXPIRED" });
+        clearInterval(this.timer2);
+      }
+    }, 1000);
+  }
+
+  stopPlayer1Timer() {
+    // Stop reducing player1 TimeLeft by 1 every sec
+    clearInterval(this.timer1);
+  }
+
+  stopPlayer2Timer() {
+    // Stop reducing player2 TimeLeft by 1 every sec
+    clearInterval(this.timer2);
+  }
+
+  getPlayer1TimeLeft() {
+    return this.player1TimeLeft;
+  }
+
+  getPlayer2TimeLeft() {
+    return this.player2TimeLeft;
   }
 
   async makeMove(socket: WebSocket, move: TMove) {
@@ -120,7 +166,7 @@ export class Game {
 
     // 2: The move is valid according to chess rules
     const chess = this.chess;
-    let san = ""
+    let san = "";
     try {
       const { san: _san } = chess.move(move);
       san = _san;
@@ -149,10 +195,19 @@ export class Game {
         from: move.from,
         to: move.to,
         san,
-        promotion: move.promotion
+        promotion: move.promotion,
       });
     } catch (error) {
-      console.log(error)
+      console.log(error);
+    }
+
+    if(chess.turn() === "w") {
+      // Black has made a move, stop player2Timer and start player1Timer
+      this.startPlayer1Timer();
+      this.stopPlayer2Timer();
+    } else {
+      this.startPlayer2Timer();
+      this.stopPlayer1Timer();
     }
 
     broadCastMessage([player1, player2], {
@@ -160,7 +215,9 @@ export class Game {
       payload: {
         board: this.board,
         moves: this.moves,
-        sans: this.sans
+        sans: this.sans,
+        player1TimeLeft: this.player1TimeLeft,
+        player2TimeLeft: this.player2TimeLeft
       },
     });
 
@@ -172,6 +229,8 @@ export class Game {
       const loser =
         this.player1.getPlayer() === socket ? this.player2 : this.player1;
       result = sendGameOverMessage(winner, loser, CHECKMATE);
+      this.stopPlayer1Timer();
+      this.stopPlayer2Timer();
     }
 
     if (chess.isDraw() || chess.isThreefoldRepetition()) {
@@ -185,6 +244,8 @@ export class Game {
         },
       });
       result = DRAW;
+      this.stopPlayer1Timer();
+      this.stopPlayer2Timer();
     }
 
     // Update the result of game in DB
@@ -194,7 +255,7 @@ export class Game {
           status: COMPLETED,
           result,
           gameOutCome: result === DRAW ? DRAW : CHECKMATE,
-          board: this.board
+          board: this.board,
         },
         where: {
           id: this.gameId,
@@ -231,8 +292,10 @@ export class Game {
         payload: {
           color: this.gameId ? this.player1.getPlayerColor() : WHITE,
           opponent: {
-            name: this.getPlayer2().getPlayerName()
-          }
+            name: this.getPlayer2().getPlayerName(),
+          },
+          player1TimeLeft: this.player1TimeLeft,
+          player2TimeLeft: this.player2TimeLeft
         },
       });
 
@@ -241,13 +304,17 @@ export class Game {
         payload: {
           color: this.gameId ? this.player2.getPlayerColor() : BLACK,
           opponent: {
-            name: this.getPlayer1().getPlayerName()
-          }
+            name: this.getPlayer1().getPlayerName(),
+          },
+          player1TimeLeft: this.player1TimeLeft,
+          player2TimeLeft: this.player2TimeLeft
         },
       });
 
+      this.startPlayer1Timer();
       return;
     }
+    // Recreating a game that is already present in db
     sendMessage(this.player1.getPlayer(), {
       type: GAMERESTARTED,
       payload: {
@@ -256,8 +323,10 @@ export class Game {
         color: this.gameId ? this.player1.getPlayerColor() : WHITE,
         sans: this.sans,
         opponent: {
-          name: this.getPlayer2().getPlayerName()
-        }
+          name: this.getPlayer2().getPlayerName(),
+        },
+        player1TimeLeft: this.player1TimeLeft,
+        player2TimeLeft: this.player2TimeLeft
       },
     });
 
@@ -269,13 +338,16 @@ export class Game {
         color: this.gameId ? this.player2.getPlayerColor() : BLACK,
         sans: this.sans,
         opponent: {
-          name: this.getPlayer1().getPlayerName()
-        }
+          name: this.getPlayer1().getPlayerName(),
+        },
+        player1TimeLeft: this.player1TimeLeft,
+        player2TimeLeft: this.player2TimeLeft
       },
     });
+    this.startPlayer1Timer();
   }
 
-  async endGame(socket: WebSocket, payload: TEndGamePayload) {
+  async endGame(socket: WebSocket | null, payload: TEndGamePayload) {
     const winner =
       this.player1.getPlayer() === socket ? this.player2 : this.player1;
     const loser =
@@ -292,13 +364,15 @@ export class Game {
           status: COMPLETED,
           result,
           gameOutCome: payload.status,
-          board: this.board
+          board: this.board,
         },
         where: {
           id: this.gameId,
         },
       });
       this.status = COMPLETED;
+      this.stopPlayer1Timer();
+      this.stopPlayer2Timer();
     }
   }
 }

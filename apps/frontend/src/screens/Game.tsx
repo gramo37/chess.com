@@ -1,6 +1,6 @@
 import { Chessboard } from "react-chessboard";
 import { useInitSocket } from "../hooks/useSocket";
-import { Square } from "chess.js";
+import { Chess, Square } from "chess.js";
 import { Piece } from "react-chessboard/dist/chessboard/types";
 import { TMove } from "../types/game";
 import Moves from "../components/game/Moves";
@@ -21,7 +21,8 @@ import {
   RESIGN,
 } from "../constants";
 import { useEffect, useState } from "react";
-import { isPromotion } from "../utils/game";
+import { formatTime, isPromotion } from "../utils/game";
+import useTimer from "../hooks/useTimer";
 
 export default function Game() {
   const {
@@ -57,6 +58,16 @@ export default function Game() {
   // const queryClient = useQueryClient();
 
   const [loading, setLoading] = useState(false);
+  const {
+    timeLeft: player1timeLeft,
+    start: startPlayer1Timer,
+    stop: stopPlayer1Timer,
+  } = useTimer();
+  const {
+    timeLeft: player2timeLeft,
+    start: startPlayer2Timer,
+    stop: stopPlayer2Timer,
+  } = useTimer();
 
   const acceptDraw = () => {
     socket?.send(
@@ -86,10 +97,19 @@ export default function Game() {
         setMoves(message.payload.moves);
         setSans(message.payload.sans);
         setLoading(false);
+        const chess = new Chess(message.payload.board);
+        if (chess.turn() === "w") {
+          startPlayer1Timer(message.payload.player1TimeLeft);
+          stopPlayer2Timer();
+        } else {
+          startPlayer2Timer(message.payload.player2TimeLeft);
+          stopPlayer1Timer();
+        }
       } else if (message.type === GAMESTARTED) {
         setColor(message.payload.color);
         setBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
         setOpponent(message.payload.opponent);
+        startPlayer1Timer(message.payload.player1TimeLeft);
       } else if (message.type === GAMEOVER) {
         setMoves([]);
         setResult({
@@ -99,6 +119,8 @@ export default function Game() {
         });
         setIsGameStarted(false);
         setLoading(false);
+        stopPlayer1Timer();
+        stopPlayer2Timer();
         // queryClient.invalidateQueries({ queryKey: ["myGames"] });
       } else if (message.type === GAMERESTARTED) {
         setBoard(message.payload.board);
@@ -106,6 +128,12 @@ export default function Game() {
         setSans(message.payload.sans);
         setColor(message.payload.color);
         setOpponent(message.payload.opponent);
+        const chess = new Chess(message.payload.board);
+        if (chess.turn() === "w") {
+          startPlayer1Timer(message.payload.player1TimeLeft);
+        } else {
+          startPlayer2Timer(message.payload.player2TimeLeft);
+        }
       } else if (message.type === OFFER_DRAW) {
         if (confirm("Opponents was a draw. Do you want to draw ?")) {
           acceptDraw();
@@ -114,7 +142,7 @@ export default function Game() {
         }
       } else if (message.type === REJECT_DRAW) {
         alert("Opponent rejected the offer of draw");
-      } else if(message.type === INVALID_MOVE) {
+      } else if (message.type === INVALID_MOVE) {
         setLoading(false);
       }
     };
@@ -127,14 +155,14 @@ export default function Game() {
   useEffect(() => {
     if (result?.gameResult === RESIGN && result.winner === color) {
       alert("Congrats. You Won. Opponent has resigned");
-    } else if (["DRAW", "ACCEPT_DRAW"].includes(result?.gameResult ?? "")){
+    } else if (["DRAW", "ACCEPT_DRAW"].includes(result?.gameResult ?? "")) {
       alert("Game is Drawn!");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isGameStarted, result]);
 
   const makeAMove = (move: TMove) => {
-    if(isGameStarted) setLoading(true);
+    if (isGameStarted) setLoading(true);
     socket?.send(
       JSON.stringify({
         type: MOVE,
@@ -172,6 +200,10 @@ export default function Game() {
             <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
           </div>
         )}
+        <div className="text-white">
+          <p>White Time: {formatTime(player1timeLeft)}</p>
+          <p>Black Time: {formatTime(player2timeLeft)}</p>
+        </div>
         <Chessboard
           position={board}
           // boardWidth={500}

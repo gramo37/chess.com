@@ -20,3 +20,4 @@ export const OFFER_DRAW = "OFFER_DRAW";
 export const ACCEPT_DRAW = "ACCEPT_DRAW";
 export const REJECT_DRAW = "REJECT_DRAW";
 export const RESIGN = "RESIGN";
+export const INITIAL_TIME = 600;

@@ -39,9 +39,9 @@ model Game {
 }
 
 model Move {
-  id         String @id @default(cuid())
+  id         String  @id @default(cuid())
   gameId     String
-  Game       Game   @relation(fields: [gameId], references: [id])
+  Game       Game    @relation(fields: [gameId], references: [id])
   moveNumber Int
   from       String
   to         String
@@ -68,4 +68,5 @@ enum GameOutCome {
   RESIGN
   CHECKMATE
   DRAW
+  TIMER_EXPIRED
 }

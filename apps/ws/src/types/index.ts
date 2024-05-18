@@ -1,3 +1,3 @@
 export type TEndGamePayload = {
-  status: "RESIGN" | "ACCEPT_DRAW";
+  status: "RESIGN" | "ACCEPT_DRAW" | "TIMER_EXPIRED";
 };
