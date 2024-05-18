@@ -23,3 +23,10 @@ To develop all apps and packages, run the following command:
 ```bash
 yarn run dev
 ```
+### Production
+
+To run the app on production, run the following commands:
+
+```bash
+yarn run prod
+```
