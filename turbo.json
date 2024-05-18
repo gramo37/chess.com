@@ -15,6 +15,7 @@
       "cache": false,
       "persistent": true
     },
+    "prod": {},
     "generate": {
       "dependsOn": ["^generate"]
     },

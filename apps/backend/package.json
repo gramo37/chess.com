@@ -8,7 +8,8 @@
     "build": "tsc -b && npm run copy-assets",
     "start": "node build/index.js",
     "clean": "rimraf build/*",
-    "copy-assets": "ts-node src/tools/copyAssets"
+    "copy-assets": "ts-node src/tools/copyAssets",
+    "prod": "pm2 start build/index.js --name backend"
   },
   "keywords": [],
   "author": "",
