@@ -33,6 +33,8 @@ model Game {
   status        GameStatus?
   result        GameResult?
   gameOutCome   GameOutCome?
+  startTime     DateTime     @default(now())
+  endTime       DateTime?
 
   @@index([blackPlayerId])
   @@index([whitePlayerId])

@@ -256,6 +256,7 @@ export class Game {
           result,
           gameOutCome: result === DRAW ? DRAW : CHECKMATE,
           board: this.board,
+          endTime: new Date(Date.now())
         },
         where: {
           id: this.gameId,
@@ -365,6 +366,7 @@ export class Game {
           result,
           gameOutCome: payload.status,
           board: this.board,
+          endTime: new Date(Date.now())
         },
         where: {
           id: this.gameId,
