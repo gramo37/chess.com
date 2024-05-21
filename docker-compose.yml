@@ -13,3 +13,43 @@ services:
     container_name: my_redis
     ports:
       - "6379:6379"
+  backend:
+    build:
+      context: ./apps/backend
+    ports: 
+      - "5000:5000"
+    environment:
+      - DATABASE_URL="postgres://username:password@127.0.0.1:5432/default_database"
+      - FRONTEND_URL="http://localhost"
+      - VITE_BACKEND_URL="http://localhost:5000"
+      - BACKEND_PORT=5000
+      - ALLOWED_HOSTS="http://localhost:5173,http://localhost:3000,http://localhost"
+      - SECRET_KEY="SECRET_KEY"
+      - NODE_ENV="production"
+      - WEBSOCKET_PORT=8000
+      - VITE_WS_URL="ws://localhost:8000"
+      - REDIS_KEY="REDIS_KEY"
+      - REDIS_DATA_KEY="data"
+    depends_on:
+      - database
+      - redis
+  ws:
+    build:
+      context: ./apps/ws
+    ports: 
+      - "8000:8000"
+    environment:
+      - DATABASE_URL="postgres://username:password@127.0.0.1:5432/default_database"
+      - FRONTEND_URL="http://localhost"
+      - VITE_BACKEND_URL="http://localhost:5000"
+      - BACKEND_PORT=5000
+      - ALLOWED_HOSTS="http://localhost:5173,http://localhost:3000,http://localhost"
+      - SECRET_KEY="SECRET_KEY"
+      - NODE_ENV="production"
+      - WEBSOCKET_PORT=8000
+      - VITE_WS_URL="ws://localhost:8000"
+      - REDIS_KEY="REDIS_KEY"
+      - REDIS_DATA_KEY="data"
+    depends_on:
+      - database
+      - redis

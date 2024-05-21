@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsc-watch --onSuccess \"node ./build/index.js\"",
     "build": "tsc -b && npm run copy-assets",
-    "start": "node build/index.js",
+    "start": "prisma generate && node build/index.js",
     "clean": "rimraf build/*",
     "copy-assets": "ts-node src/tools/copyAssets",
     "prod": "pm2 start build/index.js --name backend"
@@ -30,7 +30,9 @@
     "shelljs": "^0.8.5",
     "ts-node": "^10.9.2",
     "tsc-watch": "^6.2.0",
-    "tslint": "^6.1.3"
+    "tslint": "^6.1.3",
+    "typescript": "^4.5.4",
+    "@prisma/client": "^5.14.0"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
@@ -44,6 +46,7 @@
     "node-cron": "3.0.0",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
-    "redis": "^4.6.13"
+    "redis": "^4.6.13",
+    "prisma": "^5.14.0"
   }
 }

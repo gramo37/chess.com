@@ -238,7 +238,7 @@ export class GameManager {
           whitePlayer: true,
         },
       })
-      .then((games) => {
+      .then((games: any) => {
         this.addGames(games);
       });
   }
