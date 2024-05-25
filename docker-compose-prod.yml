@@ -56,7 +56,7 @@ services:
       - database
       - redis
   frontend:
-    image: gramo37/chess-frontend:v1.0
+    image: gramo37/chess-frontend:latest
     ports:
       - "80:80"
     depends_on:
