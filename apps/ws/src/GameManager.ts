@@ -240,6 +240,8 @@ export class GameManager {
       })
       .then((games: any) => {
         this.addGames(games);
+      }).catch((err: any) => {
+        console.log(err)
       });
   }
 }
