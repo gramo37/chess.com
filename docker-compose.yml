@@ -5,9 +5,9 @@ services:
     ports:
       - 5432:5432
     environment:
-      POSTGRES_USER: username # The PostgreSQL user (useful to connect to the database)
-      POSTGRES_PASSWORD: password # The PostgreSQL password (useful to connect to the database)
-      POSTGRES_DB: default_database # The PostgreSQL default database (automatically created at first launch)
+      POSTGRES_USER: ${POSTGRES_USER} # The PostgreSQL user (useful to connect to the database)
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # The PostgreSQL password (useful to connect to the database)
+      POSTGRES_DB: ${POSTGRES_DB} # The PostgreSQL default database (automatically created at first launch)
   redis:
     image: redis:latest
     container_name: my_redis
@@ -19,17 +19,19 @@ services:
     ports: 
       - "5000:5000"
     environment:
-      - DATABASE_URL="postgres://username:password@127.0.0.1:5432/default_database"
-      - FRONTEND_URL="http://localhost"
-      - VITE_BACKEND_URL="http://localhost:5000"
-      - BACKEND_PORT=5000
-      - ALLOWED_HOSTS="http://localhost:5173,http://localhost:3000,http://localhost"
-      - SECRET_KEY="SECRET_KEY"
-      - NODE_ENV="production"
-      - WEBSOCKET_PORT=8000
-      - VITE_WS_URL="ws://localhost:8000"
-      - REDIS_KEY="REDIS_KEY"
-      - REDIS_DATA_KEY="data"
+      DATABASE_URL: ${DATABASE_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+      VITE_BACKEND_URL: ${VITE_BACKEND_URL}
+      BACKEND_PORT: ${BACKEND_PORT}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      SECRET_KEY: "SECRET_KEY"
+      NODE_ENV: "production"
+      WEBSOCKET_PORT: ${WEBSOCKET_PORT}
+      VITE_WS_URL: ${VITE_WS_URL}
+      REDIS_KEY: "REDIS_KEY"
+      REDIS_DATA_KEY: "data"
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT}
     depends_on:
       - database
       - redis
@@ -39,17 +41,41 @@ services:
     ports: 
       - "8000:8000"
     environment:
-      - DATABASE_URL="postgres://username:password@127.0.0.1:5432/default_database"
-      - FRONTEND_URL="http://localhost"
-      - VITE_BACKEND_URL="http://localhost:5000"
-      - BACKEND_PORT=5000
-      - ALLOWED_HOSTS="http://localhost:5173,http://localhost:3000,http://localhost"
-      - SECRET_KEY="SECRET_KEY"
-      - NODE_ENV="production"
-      - WEBSOCKET_PORT=8000
-      - VITE_WS_URL="ws://localhost:8000"
-      - REDIS_KEY="REDIS_KEY"
-      - REDIS_DATA_KEY="data"
+      DATABASE_URL: ${DATABASE_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+      VITE_BACKEND_URL: ${VITE_BACKEND_URL}
+      BACKEND_PORT: ${BACKEND_PORT}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      SECRET_KEY: "SECRET_KEY"
+      NODE_ENV: "production"
+      WEBSOCKET_PORT: ${WEBSOCKET_PORT}
+      VITE_WS_URL: ${VITE_WS_URL}
+      REDIS_KEY: "REDIS_KEY"
+      REDIS_DATA_KEY: "data"
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT}
     depends_on:
       - database
       - redis
+  frontend:
+    build:
+      context: ./apps/frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - ws
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+      VITE_BACKEND_URL: ${VITE_BACKEND_URL}
+      BACKEND_PORT: ${BACKEND_PORT}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      SECRET_KEY: "SECRET_KEY"
+      NODE_ENV: "production"
+      WEBSOCKET_PORT: ${WEBSOCKET_PORT}
+      VITE_WS_URL: ${VITE_WS_URL}
+      REDIS_KEY: "REDIS_KEY"
+      REDIS_DATA_KEY: "data"
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT}

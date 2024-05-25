@@ -41,7 +41,7 @@ export default function Landing() {
           <h1 className="text-white font-serif font-bold text-4xl text-center italic">
             Worlds 3rd best Online Chess Platform
           </h1>
-          <p className="text-white">Active User: {data?.games * 2 ?? 0}</p>
+          <p className="text-white">Active User: {(data?.games ?? 0) * 2}</p>
         </div>
         <button
           onClick={startGame}
