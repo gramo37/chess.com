@@ -1,0 +1,78 @@
+version: '3'
+services:
+  database:
+    image: 'postgres:latest'
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER} # The PostgreSQL user (useful to connect to the database)
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # The PostgreSQL password (useful to connect to the database)
+      POSTGRES_DB: ${POSTGRES_DB} # The PostgreSQL default database (automatically created at first launch)
+  redis:
+    image: redis:latest
+    container_name: my_redis
+    ports:
+      - "6379:6379"
+  backend:
+    image: gramo37/chess-backend:latest
+    ports: 
+      - "5000:5000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+      VITE_BACKEND_URL: ${VITE_BACKEND_URL}
+      BACKEND_PORT: ${BACKEND_PORT}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      SECRET_KEY: "SECRET_KEY"
+      NODE_ENV: "production"
+      WEBSOCKET_PORT: ${WEBSOCKET_PORT}
+      VITE_WS_URL: ${VITE_WS_URL}
+      REDIS_KEY: "REDIS_KEY"
+      REDIS_DATA_KEY: "data"
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT}
+    depends_on:
+      - database
+      - redis
+  ws:
+    image: gramo37/chess-ws:latest
+    ports: 
+      - "8000:8000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+      VITE_BACKEND_URL: ${VITE_BACKEND_URL}
+      BACKEND_PORT: ${BACKEND_PORT}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      SECRET_KEY: "SECRET_KEY"
+      NODE_ENV: "production"
+      WEBSOCKET_PORT: ${WEBSOCKET_PORT}
+      VITE_WS_URL: ${VITE_WS_URL}
+      REDIS_KEY: "REDIS_KEY"
+      REDIS_DATA_KEY: "data"
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT}
+    depends_on:
+      - database
+      - redis
+  frontend:
+    image: gramo37/chess-frontend:v1.0
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - ws
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+      VITE_BACKEND_URL: ${VITE_BACKEND_URL}
+      BACKEND_PORT: ${BACKEND_PORT}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      SECRET_KEY: "SECRET_KEY"
+      NODE_ENV: "production"
+      WEBSOCKET_PORT: ${WEBSOCKET_PORT}
+      VITE_WS_URL: ${VITE_WS_URL}
+      REDIS_KEY: "REDIS_KEY"
+      REDIS_DATA_KEY: "data"
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT}
