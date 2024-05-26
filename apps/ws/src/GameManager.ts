@@ -138,7 +138,7 @@ export class GameManager {
     });
     if (db_game) {
       // Check for the game locally
-      const game = this.games.find((item) => item.getGameId() === db_game.id);
+      const game = this.games.find((item) => item.getGameId() === db_game?.id);
       if (game) {
         const restartedPlayer =
           game.getPlayer1().getPlayerId() === user.id

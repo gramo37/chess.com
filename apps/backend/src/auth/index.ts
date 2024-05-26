@@ -67,21 +67,16 @@ router.get("/refresh", (req, res) => {
   }
 });
 
-router.post("/logout", function (req, res, next) {
-  try {
-    req.logout(function (err) {
-      if (err) {
-        return next(err);
-      }
-      res.redirect("/");
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      message: "Something went wrong",
-      error,
-    });
-  }
+router.get("/logout", (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      console.error('Error logging out:', err);
+      res.status(500).json({ error: 'Failed to log out' });
+    } else {
+      res.clearCookie('jwt');
+      res.redirect(`${FRONTEND_URL}`);
+    }
+  });
 });
 
 export default router;
