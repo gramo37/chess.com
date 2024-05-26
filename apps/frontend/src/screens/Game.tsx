@@ -24,6 +24,10 @@ import { useEffect, useState } from "react";
 import { formatTime, isPromotion } from "../utils/game";
 import useTimer from "../hooks/useTimer";
 
+interface HighlightedSquares {
+  [square: string]: React.CSSProperties;
+}
+
 export default function Game() {
   const {
     board,
@@ -58,6 +62,9 @@ export default function Game() {
   // const queryClient = useQueryClient();
 
   const [loading, setLoading] = useState(false);
+  const [highlightedSquares, setHighlightedSquares] =
+    useState<HighlightedSquares>({});
+  const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
   const {
     timeLeft: player1timeLeft,
     start: startPlayer1Timer,
@@ -161,32 +168,74 @@ export default function Game() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isGameStarted, result]);
 
-  const makeAMove = (move: TMove) => {
-    if (isGameStarted) setLoading(true);
-    socket?.send(
-      JSON.stringify({
-        type: MOVE,
-        move,
-      })
-    );
+  const sendMove = (move: TMove) => {
+    try {
+      const chess = new Chess(board);
+      chess.move(move);
+      setBoard(chess.fen());
+      if (isGameStarted) setLoading(true);
+      socket?.send(
+        JSON.stringify({
+          type: MOVE,
+          move,
+        })
+      );
+    } catch (error) {
+      return;
+    }
+  };
+
+  const makeAMove = (
+    sourceSquare: Square,
+    targetSquare: Square,
+    piece?: Piece
+  ) => {
+    try {
+      if (piece && isPromotion(targetSquare, piece)) {
+        const promotion = piece[1].toLowerCase();
+        sendMove({
+          from: sourceSquare,
+          to: targetSquare,
+          promotion,
+        });
+        return true;
+      }
+      sendMove({
+        from: sourceSquare,
+        to: targetSquare,
+      });
+      return true;
+    } catch (error) {
+      return false;
+    }
   };
 
   function onDrop(sourceSquare: Square, targetSquare: Square, piece: Piece) {
-    if (isPromotion(targetSquare, piece)) {
-      const promotion = piece[1].toLowerCase();
-      makeAMove({
-        from: sourceSquare,
-        to: targetSquare,
-        promotion,
-      });
-      return true;
-    }
-    makeAMove({
-      from: sourceSquare,
-      to: targetSquare,
-    });
-    return true;
+    return makeAMove(sourceSquare, targetSquare, piece);
   }
+
+  const onSquareClick = (square: Square, piece?: Piece) => {
+    if (selectedSquare) {
+      // Make a move
+      makeAMove(selectedSquare, square, piece);
+      setSelectedSquare(null);
+      setHighlightedSquares({});
+    } else {
+      const game = new Chess(board);
+      const moves = game.moves({ square, verbose: true }) as TMove[];
+      const newHighlightedSquares: HighlightedSquares = {};
+
+      moves.forEach((move) => {
+        newHighlightedSquares[move.to] = {
+          backgroundColor: "rgb(161 98 7 / 1)",
+          borderRadius: "50%"
+        };
+      });
+
+      setHighlightedSquares(newHighlightedSquares);
+      setSelectedSquare(square);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 p-4">
@@ -208,6 +257,8 @@ export default function Game() {
             // boardWidth={500}
             onPieceDrop={onDrop}
             boardOrientation={color ?? "white"}
+            onSquareClick={onSquareClick}
+            customSquareStyles={highlightedSquares}
           />
           <div className="mt-4 text-center">
             <p className="text-gray-400">
@@ -229,6 +280,7 @@ export default function Game() {
                 {result.winner === color ? "You Won" : "You Lose"}
               </p>
             )}
+          <div className="hidden">{loading}</div>
           {!isGameStarted && <NewGame />}
           {isGameStarted && <Moves />}
         </div>
