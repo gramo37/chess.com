@@ -1,12 +1,17 @@
-import { ENDGAME, OFFER_DRAW, RESIGN } from "../../constants";
+import {
+  ENDGAME,
+  OFFER_DRAW,
+  RESIGN,
+} from "../../constants";
 import { useGameStore } from "../../contexts/game.context";
 
 const Moves = () => {
-  const { color, sans, socket } = useGameStore([
+  const { color, sans, socket, result } = useGameStore([
     "color",
     "socket",
     "sans",
     "isGameStarted",
+    "result",
   ]);
 
   const OfferDraw = () => {
@@ -30,9 +35,9 @@ const Moves = () => {
 
   return (
     <>
-      <p className="text-center text-gray-400">
+      {!result?.gameResult && <p className="text-center text-gray-400">
         {color ? `You are playing ${color}` : `Finding opponent...`}
-      </p>
+      </p>}
       <div className="hidden md:block mt-4 w-full">
         <h3 className="text-lg font-medium text-gray-300">Moves:</h3>
         <div className="overflow-y-auto h-48 border border-gray-700 p-2 w-full min-h-[315px]">

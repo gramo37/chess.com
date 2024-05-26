@@ -190,29 +190,45 @@ export default function Game() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 p-4">
-      <div className="flex flex-col lg:flex-row bg-gray-800 rounded-lg shadow-lg overflow-hidden w-full sm:w-[75%] max-w-5xl">
+      <div className="flex flex-col lg:flex-row bg-gray-800 rounded-lg shadow-lg overflow-hidden w-full sm:w-[70%] lg:w-[85%] max-w-7xl">
         <div className="w-full lg:w-1/2 p-4 lg:p-8 flex flex-col items-center">
           <div className="mb-4 text-center">
             <h2 className="text-xl font-bold text-gray-300">
               {opponent?.name ?? ""}
             </h2>
             <p className="text-gray-400">
-              Time left: {color === "white" ? formatTime(player2timeLeft) : formatTime(player1timeLeft)}
+              Time left:{" "}
+              {color === "white"
+                ? formatTime(player2timeLeft)
+                : formatTime(player1timeLeft)}
             </p>
           </div>
           <Chessboard
-          position={board}
-          // boardWidth={500}
-          onPieceDrop={onDrop}
-          boardOrientation={color ?? "white"}
-        />
+            position={board}
+            // boardWidth={500}
+            onPieceDrop={onDrop}
+            boardOrientation={color ?? "white"}
+          />
           <div className="mt-4 text-center">
             <p className="text-gray-400">
-              Time left: {color === "white" ? formatTime(player1timeLeft) : formatTime(player2timeLeft)}
+              Time left:{" "}
+              {color === "white"
+                ? formatTime(player1timeLeft)
+                : formatTime(player2timeLeft)}
             </p>
           </div>
         </div>
         <div className="w-full lg:w-1/2 p-4 lg:p-8 flex flex-col items-center">
+          <p className="text-center text-gray-400">
+            {[DRAW, ACCEPT_DRAW].includes(result?.gameResult ?? "") &&
+              "Game is Drawn"}
+          </p>
+          {![DRAW, ACCEPT_DRAW].includes(result?.gameResult ?? "") &&
+            result && (
+              <p className="text-center text-gray-400">
+                {result.winner === color ? "You Won" : "You Lose"}
+              </p>
+            )}
           {!isGameStarted && <NewGame />}
           {isGameStarted && <Moves />}
         </div>
