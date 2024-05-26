@@ -32,10 +32,11 @@ router.post("/register", async (req, res) => {
     });
     res.redirect(`${FRONTEND_URL}/game`);
   } catch (error) {
-    return res.status(500).json({
-      message: "Something went wrong",
-      error,
-    });
+    return res.redirect(`/error`);
+    // return res.status(500).json({
+    //   message: "Something went wrong",
+    //   error,
+    // });
   }
 });
 
@@ -60,10 +61,11 @@ router.get("/refresh", (req, res) => {
       });
   } catch (error) {
     console.log(error);
-    res.status(500).json({
-      message: "Something went wrong",
-      error,
-    });
+    return res.redirect(`/error`);
+    // res.status(500).json({
+    //   message: "Something went wrong",
+    //   error,
+    // });
   }
 });
 

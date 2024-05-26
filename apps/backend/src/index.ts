@@ -54,12 +54,11 @@ app.use(
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
-app.get("/error", (req, res) => {
-  res.status(500).send("Something went wrong");
-})
-
 app.get("/404notfound", (req, res) => {
-  res.status(404).send("User Not Found!");
+  res.render("notfound")
+})
+app.get("/error", (req, res) => {
+  res.render("error")
 })
 
 app.get("/active_users", async (req, res) => {
@@ -74,7 +73,8 @@ app.get("/active_users", async (req, res) => {
     })
   } catch (error) {
     console.log(error)
-    res.status(500).send("Something Went Wrong!")
+    return res.redirect(`/error`);
+    // res.status(500).send("Something Went Wrong!")
   }
 })
 
