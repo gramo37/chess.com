@@ -228,7 +228,6 @@ export default function Game() {
       moves.forEach((move) => {
         newHighlightedSquares[move.to] = {
           backgroundColor: "rgb(161 98 7 / 1)",
-          borderRadius: "50%"
         };
       });
 
