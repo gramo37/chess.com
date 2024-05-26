@@ -32,35 +32,43 @@ export default function Landing() {
   });
 
   return (
-    <div className="flex justify-center items-center w-screen flex-col md:flex-row pt-8 md:pt-0">
-      <div className="md:p-10 p-4">
-        <img className="max-w-80 sm:max-w-96" src="/chess.jpg" />
-      </div>
-      <div className="flex justify-center items-center flex-col">
-        <div className="py-10 px-20">
-          <h1 className="text-white font-serif font-bold text-4xl text-center italic">
-            Worlds 3rd best Online Chess Platform
-          </h1>
-          <p className="text-white">Active User: {(data?.games ?? 0) * 2}</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="flex bg-gray-800 rounded-lg shadow-lg overflow-hidden w-auto lg:w-[50vw]">
+        <div
+          className="hidden lg:block lg:w-1/2 bg-cover"
+          style={{ backgroundImage: "url('/chess.jpg')" }}
+        ></div>
+        <div className="w-full p-8 lg:w-1/2">
+          <h2 className="text-2xl font-bold text-gray-300">
+            Welcome to Chess!
+          </h2>
+          <p className="mt-4 text-gray-400">
+            Join the exciting world of online chess.
+          </p>
+          <div className="mt-8">
+            <button
+              onClick={startGame}
+              className="w-full bg-blue-700 text-gray-300 py-2 px-4 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
+            >
+              Play
+            </button>
+            <button
+              onClick={signup}
+              className="w-full bg-green-700 text-gray-300 py-2 px-4 rounded mt-4 hover:bg-green-600 focus:outline-none focus:bg-green-600"
+            >
+              Signup
+            </button>
+            <button
+              onClick={login}
+              className="w-full bg-gray-700 text-gray-300 py-2 px-4 rounded mt-4 hover:bg-gray-600 focus:outline-none focus:bg-gray-600"
+            >
+              Login
+            </button>
+          </div>
+          <div className="mt-8">
+            <h3 className="text-lg font-medium text-gray-300">Users: {(data?.games ?? 0) * 2}</h3>
+          </div>
         </div>
-        <button
-          onClick={startGame}
-          className="text-white border m-2 border-white py-5 px-14 hover:bg-white hover:text-black transition-all"
-        >
-          Play Online Chess
-        </button>
-        <button
-          onClick={signup}
-          className="text-white border m-2 border-white py-5 px-14 hover:bg-white hover:text-black transition-all"
-        >
-          Sign Up
-        </button>
-        <button
-          onClick={login}
-          className="text-white border m-2 border-white py-5 px-14 hover:bg-white hover:text-black transition-all"
-        >
-          Log In
-        </button>
       </div>
     </div>
   );

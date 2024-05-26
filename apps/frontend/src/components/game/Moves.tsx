@@ -6,6 +6,7 @@ const Moves = () => {
     "color",
     "socket",
     "sans",
+    "isGameStarted",
   ]);
 
   const OfferDraw = () => {
@@ -28,40 +29,35 @@ const Moves = () => {
   };
 
   return (
-    <div className="flex-1">
-      <div>
-        <h1 className="text-center text-white text-2xl font-sans">
-          {color ? `You are playing ${color}` : "Finding an Opponent..."}
-        </h1>
-        {color && (
-          <h1 className="text-center text-white text-4xl">Moves Played</h1>
-        )}
+    <>
+      <p className="text-center text-gray-400">
+        {color ? `You are playing ${color}` : `Finding opponent...`}
+      </p>
+      <div className="hidden md:block mt-4 w-full">
+        <h3 className="text-lg font-medium text-gray-300">Moves:</h3>
+        <div className="overflow-y-auto h-48 border border-gray-700 p-2 w-full min-h-[315px]">
+          <ul className="list-disc list-inside">
+            {sans?.map((move, index) => (
+              <li key={index} className="text-gray-400">
+                {index % 2 === 0 ? "white" : "black"}: {move}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
-      <div className="overflow-y-auto h-[390px]">
-        {sans?.map((san, i) => {
-          return (
-            <p
-              key={i}
-              className="text-center text-white text-2xl border border-white my-2 mx-6 font-semibold font-sans"
-            >
-              {i % 2 === 0 ? "white" : "black"}: {san}
-            </p>
-          );
-        })}
-        <button
-          className="text-white border border-white py-5 px-14 hover:bg-white hover:text-black transition-all"
-          onClick={OfferDraw}
-        >
-          Offer Draw
-        </button>
-        <button
-          className="text-white border border-white py-5 px-14 hover:bg-white hover:text-black transition-all"
-          onClick={resign}
-        >
-          Resign
-        </button>
-      </div>
-    </div>
+      <button
+        onClick={OfferDraw}
+        className="w-full bg-yellow-700 text-gray-300 py-2 px-4 rounded mt-4 hover:bg-yellow-600 focus:outline-none focus:bg-yellow-600"
+      >
+        Offer Draw
+      </button>
+      <button
+        onClick={resign}
+        className="w-full bg-red-700 text-gray-300 py-2 px-4 rounded mt-4 hover:bg-red-600 focus:outline-none focus:bg-red-600"
+      >
+        Resign
+      </button>
+    </>
   );
 };
 

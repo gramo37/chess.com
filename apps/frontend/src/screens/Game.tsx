@@ -189,41 +189,32 @@ export default function Game() {
   }
 
   return (
-    <div className="flex border justify-between min-w-96 lg:flex-row flex-col">
-      <p className="text-white">Opponent Name: {opponent?.name ?? ""}</p>
-      <div className="flex-1 flex max-w-2xl justify-center items-center p-3">
-        {loading && (
-          <div
-            id="overlay"
-            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
-          >
-            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 p-4">
+      <div className="flex flex-col lg:flex-row bg-gray-800 rounded-lg shadow-lg overflow-hidden w-full sm:w-[75%] max-w-5xl">
+        <div className="w-full lg:w-1/2 p-4 lg:p-8 flex flex-col items-center">
+          <div className="mb-4 text-center">
+            <h2 className="text-xl font-bold text-gray-300">
+              {opponent?.name ?? ""}
+            </h2>
+            <p className="text-gray-400">
+              Time left: {color === "white" ? formatTime(player2timeLeft) : formatTime(player1timeLeft)}
+            </p>
           </div>
-        )}
-        <div className="text-white">
-          <p>White Time: {formatTime(player1timeLeft)}</p>
-          <p>Black Time: {formatTime(player2timeLeft)}</p>
-        </div>
-        <Chessboard
+          <Chessboard
           position={board}
           // boardWidth={500}
           onPieceDrop={onDrop}
           boardOrientation={color ?? "white"}
         />
-      </div>
-      <div className="flex-1 border border-white m-2 flex justify-center items-center min-h-52">
-        {isGameStarted && <Moves />}
-        <div className="flex flex-col items-center justify-center">
-          {[DRAW, ACCEPT_DRAW].includes(result?.gameResult ?? "") ? (
-            <h1 className="text-center text-white text-4xl">Game is Drawn</h1>
-          ) : (
-            result && (
-              <h1 className="text-center text-white text-4xl">
-                {result.winner === color ? "You Won" : "You Lose"}
-              </h1>
-            )
-          )}
+          <div className="mt-4 text-center">
+            <p className="text-gray-400">
+              Time left: {color === "white" ? formatTime(player1timeLeft) : formatTime(player2timeLeft)}
+            </p>
+          </div>
+        </div>
+        <div className="w-full lg:w-1/2 p-4 lg:p-8 flex flex-col items-center">
           {!isGameStarted && <NewGame />}
+          {isGameStarted && <Moves />}
         </div>
       </div>
     </div>
