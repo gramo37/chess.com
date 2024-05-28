@@ -9,6 +9,8 @@ import {
   ENDGAME,
   OFFER_DRAW,
   REJECT_DRAW,
+  ABORT_GAME,
+  GAMEABORTED,
 } from "./constants";
 import { Game } from "./Game";
 import { Player } from "./Player";
@@ -58,10 +60,26 @@ export class GameManager {
         case REJECT_DRAW:
           await self.rejectDraw(socket);
           break;
+        case ABORT_GAME:
+          await self.abortGame(socket, token);
+          break;
         default:
           break;
       }
     });
+  }
+
+  async abortGame(socket: WebSocket, token: string) {
+    const user = await extractUser(token);
+    if (!user || !user.name || !user.id) return;
+    if(this.pendingUser === null) return;
+    // If the pending user is the player who wants to abort the game
+    if(this.pendingUser.getPlayerId() === user.id) {
+      this.pendingUser = null;
+      sendMessage(socket, {
+        type: GAMEABORTED,
+      });
+    }
   }
 
   removeUser(socket: WebSocket) {

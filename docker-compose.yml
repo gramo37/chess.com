@@ -60,6 +60,9 @@ services:
   frontend:
     build:
       context: ./apps/frontend
+      args:
+        - VITE_WS_URL=${VITE_WS_URL}
+        - VITE_BACKEND_URL=${VITE_BACKEND_URL}
     ports:
       - "80:80"
     depends_on:

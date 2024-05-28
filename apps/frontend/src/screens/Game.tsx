@@ -1,7 +1,10 @@
 import { Chessboard } from "react-chessboard";
 import { useInitSocket } from "../hooks/useSocket";
 import { Chess, Square } from "chess.js";
-import { Piece } from "react-chessboard/dist/chessboard/types";
+import {
+  Piece,
+  PromotionPieceOption,
+} from "react-chessboard/dist/chessboard/types";
 import { TMove } from "../types/game";
 import Moves from "../components/game/Moves";
 import { useGameStore } from "../contexts/game.context";
@@ -10,6 +13,7 @@ import {
   ACCEPT_DRAW,
   DRAW,
   ENDGAME,
+  GAMEABORTED,
   GAMEOVER,
   GAMERESTARTED,
   GAMESTARTED,
@@ -62,9 +66,12 @@ export default function Game() {
   // const queryClient = useQueryClient();
 
   const [loading, setLoading] = useState(false);
+  const [showPromotionDialog, setShowPromotionDialog] = useState(false);
   const [highlightedSquares, setHighlightedSquares] =
     useState<HighlightedSquares>({});
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
+  const [selectedPiece, setSelectedPiece] = useState<Piece | null>(null);
+  const [promotionSquare, setPromotionSquare] = useState<Square | null>(null);
   const {
     timeLeft: player1timeLeft,
     start: startPlayer1Timer,
@@ -151,6 +158,8 @@ export default function Game() {
         alert("Opponent rejected the offer of draw");
       } else if (message.type === INVALID_MOVE) {
         setLoading(false);
+      } else if (message.type === GAMEABORTED) {
+        setIsGameStarted(false);
       }
     };
     return () => {
@@ -171,6 +180,11 @@ export default function Game() {
   const sendMove = (move: TMove) => {
     try {
       const chess = new Chess(board);
+      if (
+        (chess.turn() === "w" && color === "black") ||
+        (chess.turn() === "b" && color === "white")
+      )
+        return;
       chess.move(move);
       setBoard(chess.fen());
       if (isGameStarted) setLoading(true);
@@ -181,44 +195,50 @@ export default function Game() {
         })
       );
     } catch (error) {
+      console.log(error);
       return;
     }
   };
 
-  const makeAMove = (
-    sourceSquare: Square,
-    targetSquare: Square,
-    piece?: Piece
-  ) => {
+  const makeAMove = (sourceSquare: Square, targetSquare: Square) => {
     try {
-      if (piece && isPromotion(targetSquare, piece)) {
-        const promotion = piece[1].toLowerCase();
-        sendMove({
-          from: sourceSquare,
-          to: targetSquare,
-          promotion,
-        });
-        return true;
+      if (selectedPiece && isPromotion(targetSquare, selectedPiece)) {
+        // Show the Promotion Dialog
+        setShowPromotionDialog(true);
+        setPromotionSquare(targetSquare);
+        return false;
       }
       sendMove({
         from: sourceSquare,
         to: targetSquare,
       });
+      setSelectedSquare(null);
+      setSelectedPiece(null);
       return true;
     } catch (error) {
       return false;
     }
   };
 
-  function onDrop(sourceSquare: Square, targetSquare: Square, piece: Piece) {
-    return makeAMove(sourceSquare, targetSquare, piece);
+  function onDrop(sourceSquare: Square, targetSquare: Square) {
+    // Note -> This will not run during promotion
+    // Promotion is handled differently
+    try {
+      sendMove({
+        from: sourceSquare,
+        to: targetSquare,
+      });
+      return true;
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
   }
 
   const onSquareClick = (square: Square, piece?: Piece) => {
     if (selectedSquare) {
       // Make a move
-      makeAMove(selectedSquare, square, piece);
-      setSelectedSquare(null);
+      makeAMove(selectedSquare, square);
       setHighlightedSquares({});
     } else {
       const game = new Chess(board);
@@ -228,17 +248,17 @@ export default function Game() {
       moves.forEach((move) => {
         newHighlightedSquares[move.to] = {
           backgroundColor: "rgb(161 98 7 / 1)",
-          borderRadius: "50%"
         };
       });
 
       setHighlightedSquares(newHighlightedSquares);
       setSelectedSquare(square);
+      if (piece) setSelectedPiece(piece);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 p-0 sm:p-4">
       <div className="flex flex-col lg:flex-row bg-gray-800 rounded-lg shadow-lg overflow-hidden w-full sm:w-[70%] lg:w-[85%] max-w-7xl">
         <div className="w-full lg:w-1/2 p-4 lg:p-8 flex flex-col items-center">
           <div className="mb-4 text-center">
@@ -254,6 +274,46 @@ export default function Game() {
           </div>
           <Chessboard
             position={board}
+            showPromotionDialog={showPromotionDialog}
+            promotionDialogVariant="modal"
+            onDragOverSquare={(square) => {
+              // Update the promotionSquare here
+              if (selectedPiece && isPromotion(square, selectedPiece)) {
+                setPromotionSquare(square);
+              }
+            }}
+            onPieceDragBegin={(piece, sourceSquare) => {
+              setSelectedPiece(piece);
+              setSelectedSquare(sourceSquare);
+            }}
+            onPromotionPieceSelect={(piece?: PromotionPieceOption) => {
+              if (!piece || !selectedSquare || !promotionSquare) {
+                setShowPromotionDialog(false);
+                return false;
+              }
+              try {
+                const promotion = piece?.[1].toLowerCase();
+                socket?.send(
+                  JSON.stringify({
+                    type: MOVE,
+                    move: {
+                      from: selectedSquare,
+                      to: promotionSquare,
+                      promotion,
+                    },
+                  })
+                );
+                setPromotionSquare(null);
+                return true;
+              } catch (error) {
+                console.log(error);
+                return false;
+              } finally {
+                setShowPromotionDialog(false);
+                setSelectedSquare(null);
+                setSelectedPiece(null);
+              }
+            }}
             // boardWidth={500}
             onPieceDrop={onDrop}
             boardOrientation={color ?? "white"}
