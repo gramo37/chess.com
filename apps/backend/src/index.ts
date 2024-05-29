@@ -18,6 +18,7 @@ dotenv.config();
 const app = express();
 const ejs = require("ejs");
 const PORT = process.env.BACKEND_PORT ?? 3000;
+const BACKEND_ROUTE = "api"
 
 initPassport(passport);
 connectToRedis();
@@ -54,14 +55,14 @@ app.use(
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
-app.get("/404notfound", (req, res) => {
+app.get(`/${BACKEND_ROUTE}/404notfound`, (req, res) => {
   res.render("notfound")
 })
-app.get("/error", (req, res) => {
+app.get(`/${BACKEND_ROUTE}/error`, (req, res) => {
   res.render("error")
 })
 
-app.get("/active_users", async (req, res) => {
+app.get(`/${BACKEND_ROUTE}/active_users`, async (req, res) => {
   try {
     const games = await db.game.count({
       where: {
@@ -78,9 +79,9 @@ app.get("/active_users", async (req, res) => {
   }
 })
 
-app.use("/me", router);
+app.use(`/${BACKEND_ROUTE}/me`, router);
 
-app.use("/auth", auth);
+app.use(`/${BACKEND_ROUTE}/auth`, auth);
 
 cron.schedule('*/10 * * * * *', async function () {
   await sendMovesToDB()
