@@ -58,7 +58,7 @@ services:
   frontend:
     image: gramo37/chess-frontend:latest
     ports:
-      - "80:80"
+      - "3000:3000"
     depends_on:
       - backend
       - ws

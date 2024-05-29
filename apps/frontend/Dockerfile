@@ -32,8 +32,8 @@ COPY --from=0 /app/dist /usr/share/nginx/html
 # Copy custom Nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expose port 80
-EXPOSE 80
+# Expose port 3000
+EXPOSE 3000
 
 # Command to run the app
 CMD ["nginx", "-g", "daemon off;"]
