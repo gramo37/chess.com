@@ -42,7 +42,7 @@ router.post("/register", async (req, res) => {
 
 router.post(
   "/login",
-  passport.authenticate("local", { failureRedirect: "/404notfound" }),
+  passport.authenticate("local", { failureRedirect: "/api/404notfound" }),
   function (req, res) {
     res.redirect(`${FRONTEND_URL}/game`);
   }
@@ -61,7 +61,7 @@ router.get("/refresh", (req, res) => {
       });
   } catch (error) {
     console.log(error);
-    return res.redirect(`/error`);
+    return res.redirect(`/api/error`);
     // res.status(500).json({
     //   message: "Something went wrong",
     //   error,
