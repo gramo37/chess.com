@@ -36,6 +36,7 @@ const NewGame = () => {
   // }, [data]);
 
   const startGame = () => {
+    if(!socket) return;
     setIsGameStarted(true);
     setResult(null);
     setColor(null);
@@ -59,8 +60,9 @@ const NewGame = () => {
   return (
     <div className="flex justify-center items-center flex-col w-full lg:h-[465px]">
       <button
+        disabled={socket === null}
         onClick={startGame}
-        className="w-full bg-blue-700 text-gray-300 py-2 px-4 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
+        className={`w-full bg-blue-700 text-gray-300 py-2 px-4 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600 ${socket === null && "bg-gray-500"}`}
       >
         Play
       </button>

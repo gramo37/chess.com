@@ -41,7 +41,7 @@ const useTimer = () => {
     };
   }, [isActive, timeLeft]);
 
-  return { timeLeft, isActive, start, stop, reset };
+  return { timeLeft, isActive, start, stop, reset, setTimeLeft };
 };
 
 export default useTimer;

@@ -11,14 +11,15 @@ type TGame = {
   color: TColor;
   result: TGameResult;
   socket: WebSocket | null;
-  opponent: Opponent | null
+  opponent: Player | null;
+  player: Player | null;
 };
 
 type Move = TMove & {
   san: string;
 };
 
-type Opponent = {
+type Player = {
   name: string
 }
 
@@ -30,7 +31,8 @@ type TAction = {
   setColor: (color: TColor) => void;
   setResult: (result: TGameResult) => void;
   setSocket: (socket: WebSocket | null) => void;
-  setOpponent: (opponent: Opponent | null) => void;
+  setOpponent: (opponent: Player | null) => void;
+  setPlayer: (player: Player | null) => void;
 };
 
 type TGameState = TAction & TGame;
@@ -43,7 +45,8 @@ const INITIAL_STATE = {
   color: null,
   result: null,
   socket: null,
-  opponent: null
+  opponent: null,
+  player: null
 };
 
 // Create your store, which includes both state and (optionally) actions
@@ -70,9 +73,12 @@ export const useStore = create<TGame & TAction>((set) => ({
   setSocket: (socket: WebSocket | null) => {
     set({ socket });
   },
-  setOpponent: (opponent: Opponent | null) => {
+  setOpponent: (opponent: Player | null) => {
     set({ opponent });
   },
+  setPlayer: (player: Player | null) => {
+    set({ player })
+  }
 }));
 
 export const useGameStore = (value?: Array<keyof TGameState>) => {

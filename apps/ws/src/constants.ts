@@ -23,3 +23,4 @@ export const RESIGN = "RESIGN";
 export const INITIAL_TIME = 300;
 export const ABORT_GAME = "ABORT_GAME";
 export const GAMEABORTED = "GAMEABORTED";
+export const GET_TIME = "GET_TIME";

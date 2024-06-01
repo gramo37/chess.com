@@ -17,6 +17,7 @@ import {
   CHECKMATE,
   ACCEPT_DRAW,
   INITIAL_TIME,
+  GET_TIME,
 } from "./constants";
 import { db } from "./db";
 import { randomUUID } from "crypto";
@@ -295,8 +296,11 @@ export class Game {
           opponent: {
             name: this.getPlayer2().getPlayerName(),
           },
+          player: {
+            name: this.getPlayer1().getPlayerName()
+          },
           player1TimeLeft: this.player1TimeLeft,
-          player2TimeLeft: this.player2TimeLeft
+          player2TimeLeft: this.player2TimeLeft,
         },
       });
 
@@ -307,8 +311,11 @@ export class Game {
           opponent: {
             name: this.getPlayer1().getPlayerName(),
           },
+          player: {
+            name: this.getPlayer2().getPlayerName()
+          },
           player1TimeLeft: this.player1TimeLeft,
-          player2TimeLeft: this.player2TimeLeft
+          player2TimeLeft: this.player2TimeLeft,
         },
       });
 
@@ -326,8 +333,11 @@ export class Game {
         opponent: {
           name: this.getPlayer2().getPlayerName(),
         },
+        player: {
+          name: this.getPlayer1().getPlayerName()
+        },
         player1TimeLeft: this.player1TimeLeft,
-        player2TimeLeft: this.player2TimeLeft
+        player2TimeLeft: this.player2TimeLeft,
       },
     });
 
@@ -341,8 +351,11 @@ export class Game {
         opponent: {
           name: this.getPlayer1().getPlayerName(),
         },
+        player: {
+          name: this.getPlayer2().getPlayerName()
+        },
         player1TimeLeft: this.player1TimeLeft,
-        player2TimeLeft: this.player2TimeLeft
+        player2TimeLeft: this.player2TimeLeft,
       },
     });
     this.startPlayer1Timer();
@@ -366,7 +379,7 @@ export class Game {
           result,
           gameOutCome: payload.status,
           board: this.board,
-          endTime: new Date(Date.now())
+          endTime: new Date(Date.now()),
         },
         where: {
           id: this.gameId,
@@ -375,6 +388,27 @@ export class Game {
       this.status = COMPLETED;
       this.stopPlayer1Timer();
       this.stopPlayer2Timer();
+    }
+  }
+
+  async sendTimeStatus() {
+    try {
+      sendMessage(this.player1.getPlayer(), {
+        type: GET_TIME,
+        payload: {
+          player1TimeLeft: this.player1TimeLeft,
+          player2TimeLeft: this.player2TimeLeft,
+        },
+      });
+      sendMessage(this.player2.getPlayer(), {
+        type: GET_TIME,
+        payload: {
+          player1TimeLeft: this.player1TimeLeft,
+          player2TimeLeft: this.player2TimeLeft,
+        },
+      });
+    } catch (error) {
+      console.log(error);
     }
   }
 }
