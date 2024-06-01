@@ -79,6 +79,19 @@ app.get(`/${BACKEND_ROUTE}/active_users`, async (req, res) => {
   }
 })
 
+app.get(`/${BACKEND_ROUTE}/all_users`, async (req, res) => {
+  try {
+    const users = await db.user.count()
+    res.status(200).json({
+      users
+    })
+  } catch (error) {
+    console.log(error)
+    return res.redirect(`/error`);
+    // res.status(500).send("Something Went Wrong!")
+  }
+})
+
 app.use(`/${BACKEND_ROUTE}/me`, router);
 
 app.use(`/${BACKEND_ROUTE}/auth`, auth);

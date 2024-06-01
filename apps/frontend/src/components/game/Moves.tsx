@@ -1,6 +1,17 @@
 import { ABORT_GAME, ENDGAME, OFFER_DRAW, RESIGN } from "../../constants";
 import { useGameStore } from "../../contexts/game.context";
 
+const processMoves = (moves: string[]) => {
+  const result = [];
+  for (let i = 0; i < moves.length; i += 2) {
+    result.push({
+      white: moves[i],
+      black: moves[i + 1] || "", // Handle case where there's no black move
+    });
+  }
+  return result;
+};
+
 const Moves = () => {
   const { color, sans, socket, result } = useGameStore([
     "color",
@@ -9,6 +20,7 @@ const Moves = () => {
     "isGameStarted",
     "result",
   ]);
+  const processedMoves = processMoves(sans);
 
   const OfferDraw = () => {
     socket?.send(
@@ -35,7 +47,7 @@ const Moves = () => {
         type: ABORT_GAME,
       })
     );
-  }
+  };
 
   return (
     <>
@@ -48,10 +60,23 @@ const Moves = () => {
         <h3 className="text-lg font-medium text-gray-300">Moves:</h3>
         <div className="overflow-y-auto h-48 border border-gray-700 p-2 w-full min-h-[315px]">
           <ul className="list-disc list-inside">
-            {sans?.map((move, index) => (
-              <li key={index} className="text-gray-400">
-                {index % 2 === 0 ? "white" : "black"}: {move}
-              </li>
+            <tr>
+              <td className="border border-gray-800 px-4 py-2 text-white">
+                White
+              </td>
+              <td className="border border-gray-800 px-4 py-2 text-white">
+                Black
+              </td>
+            </tr>
+            {processedMoves?.map((move, index) => (
+              <tr key={index}>
+                <td className="border border-gray-800 px-4 py-2 text-white">
+                  {move.white}
+                </td>
+                <td className="border border-gray-800 px-4 py-2 text-white">
+                  {move.black}
+                </td>
+              </tr>
             ))}
           </ul>
         </div>

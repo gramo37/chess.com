@@ -31,6 +31,19 @@ export default function Landing() {
     },
   });
 
+  const { data: users } = useQuery({
+    queryKey: ["allUsers"],
+    queryFn: async () => {
+      const res = await axios.get(`${BACKEND_URL}/all_users`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
+      });
+      return res.data;
+    },
+  });
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
       <div className="flex bg-gray-800 rounded-lg shadow-lg overflow-hidden w-auto lg:w-[50vw]">
@@ -66,7 +79,8 @@ export default function Landing() {
             </button>
           </div>
           <div className="mt-8">
-            <h3 className="text-lg font-medium text-gray-300">Users: {(data?.games ?? 0) * 2}</h3>
+            <h3 className="text-sm font-light italic text-gray-300">Active Users: {(data?.games ?? 0) * 2}</h3>
+            <h3 className="text-sm font-light italic text-gray-300">Users: {(users?.users ?? 0)}</h3>
           </div>
         </div>
       </div>
