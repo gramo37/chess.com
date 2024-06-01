@@ -11,6 +11,7 @@ import {
   REJECT_DRAW,
   ABORT_GAME,
   GAMEABORTED,
+  GET_TIME,
 } from "./constants";
 import { Game } from "./Game";
 import { Player } from "./Player";
@@ -63,6 +64,8 @@ export class GameManager {
         case ABORT_GAME:
           await self.abortGame(socket, token);
           break;
+        case GET_TIME:
+          await self.getTime(socket, token);
         default:
           break;
       }
@@ -80,6 +83,23 @@ export class GameManager {
         type: GAMEABORTED,
       });
     }
+  }
+
+  async getTime(socket: WebSocket, token: string) {
+    const user = await extractUser(token);
+    if (!user || !user.name || !user.id) return;
+    const game = this.games.find(
+      (game) =>
+        (game.getPlayer1().getPlayer() === socket ||
+          game.getPlayer2().getPlayer() === socket) &&
+        game.getGameStatus() === IN_PROGRESS
+    );
+    if (game) {
+      await game.sendTimeStatus()
+    } else
+      sendMessage(socket, {
+        type: GAMENOTFOUND,
+      });
   }
 
   removeUser(socket: WebSocket) {

@@ -17,6 +17,7 @@ import {
   GAMEOVER,
   GAMERESTARTED,
   GAMESTARTED,
+  GET_TIME,
   INVALID_MOVE,
   MOVE,
   MOVESUCCESS,
@@ -24,7 +25,7 @@ import {
   REJECT_DRAW,
   RESIGN,
 } from "../constants";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatTime, isPromotion } from "../utils/game";
 import useTimer from "../hooks/useTimer";
 
@@ -47,6 +48,8 @@ export default function Game() {
     socket,
     opponent,
     setOpponent,
+    player,
+    setPlayer
   } = useGameStore([
     "board",
     "setBoard",
@@ -61,6 +64,8 @@ export default function Game() {
     "socket",
     "opponent",
     "setOpponent",
+    "player",
+    "setPlayer"
   ]);
   useInitSocket();
   // const queryClient = useQueryClient();
@@ -72,15 +77,18 @@ export default function Game() {
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
   const [selectedPiece, setSelectedPiece] = useState<Piece | null>(null);
   const [promotionSquare, setPromotionSquare] = useState<Square | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const {
     timeLeft: player1timeLeft,
     start: startPlayer1Timer,
     stop: stopPlayer1Timer,
+    setTimeLeft: setPlayer1TimeLeft
   } = useTimer();
   const {
     timeLeft: player2timeLeft,
     start: startPlayer2Timer,
     stop: stopPlayer2Timer,
+    setTimeLeft: setPlayer2TimeLeft
   } = useTimer();
 
   const acceptDraw = () => {
@@ -123,6 +131,7 @@ export default function Game() {
         setColor(message.payload.color);
         setBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
         setOpponent(message.payload.opponent);
+        setPlayer(message.payload.player);
         startPlayer1Timer(message.payload.player1TimeLeft);
       } else if (message.type === GAMEOVER) {
         setMoves([]);
@@ -142,6 +151,7 @@ export default function Game() {
         setSans(message.payload.sans);
         setColor(message.payload.color);
         setOpponent(message.payload.opponent);
+        setPlayer(message.payload.player);
         const chess = new Chess(message.payload.board);
         if (chess.turn() === "w") {
           startPlayer1Timer(message.payload.player1TimeLeft);
@@ -160,6 +170,9 @@ export default function Game() {
         setLoading(false);
       } else if (message.type === GAMEABORTED) {
         setIsGameStarted(false);
+      } else if(message.type === GET_TIME) {
+        setPlayer1TimeLeft(message.payload.player1TimeLeft)
+        setPlayer2TimeLeft(message.payload.player2TimeLeft)
       }
     };
     return () => {
@@ -176,6 +189,22 @@ export default function Game() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isGameStarted, result]);
+
+  useEffect(() => {
+    intervalRef.current = setInterval(() => {
+      if(!socket) return;
+      socket.send(JSON.stringify({
+        type: GET_TIME
+      }))
+    }, 10000);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [socket]);
 
   const sendMove = (move: TMove) => {
     try {
@@ -321,6 +350,9 @@ export default function Game() {
             customSquareStyles={highlightedSquares}
           />
           <div className="mt-4 text-center">
+          <h2 className="text-xl font-bold text-gray-300">
+              {player?.name ?? ""}
+            </h2>
             <p className="text-gray-400">
               Time left:{" "}
               {color === "white"
