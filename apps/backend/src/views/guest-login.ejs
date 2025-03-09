@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guest Login</title>
+  </head>
+  <body>
+    <form id="guestLoginForm" method="post" action="/api/auth/guest-login">
+      <input type="submit" value="Continue as Guest" />
+    </form>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("guestLoginForm").submit();
+      });
+    </script>
+  </body>
+</html>

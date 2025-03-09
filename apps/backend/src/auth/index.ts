@@ -14,6 +14,11 @@ router.get("/login", (req, res) => {
   res.render("login");
 });
 
+router.get("/guest-login", (req, res) => {
+  res.render("guest-login");
+});
+
+
 router.post("/register", async (req, res) => {
   try {
     const user = await db.user.findFirst({
@@ -23,20 +28,49 @@ router.post("/register", async (req, res) => {
     });
     if (user) return res.render("alreadyexists")
     const hashPassword = await bcrypt.hash(req.body.password, 10);
-    await db.user.create({
+    const newUser = await db.user.create({
       data: {
         email: req.body.username,
         password: hashPassword,
         name: req.body.name,
       },
     });
-    res.redirect(`${FRONTEND_URL}/game`);
+    req.login(newUser, (err) => {
+      if(err) {
+        return res.status(500).json({ message: "Signup failed", error: err });
+      }
+      return res.redirect(`${FRONTEND_URL}/game`);
+    });
   } catch (error) {
     return res.redirect(`/error`);
     // return res.status(500).json({
     //   message: "Something went wrong",
     //   error,
     // });
+  }
+});
+
+router.post("/guest-login", async (req, res) => {
+  try {
+    // Create a temporary guest user
+    const guestUser = await db.user.create({
+      data: {
+        email: `guest_${Date.now()}@guest.com`,
+        password: await bcrypt.hash("guest", 10),
+        name: `Guest_${Date.now()}`,
+        isGuest: true, 
+      },
+    });
+
+    // Log in the guest user
+    req.login(guestUser, (err) => {
+      if (err) {
+        return res.status(500).json({ message: "Guest login failed", error: err });
+      }
+      return res.redirect(`${FRONTEND_URL}/game`);
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Error creating guest user", error });
   }
 });
 

@@ -81,7 +81,11 @@ app.get(`/${BACKEND_ROUTE}/active_users`, async (req, res) => {
 
 app.get(`/${BACKEND_ROUTE}/all_users`, async (req, res) => {
   try {
-    const users = await db.user.count()
+    const users = await db.user.count({
+      where: {
+        isGuest: false
+      }
+    })
     res.status(200).json({
       users
     })

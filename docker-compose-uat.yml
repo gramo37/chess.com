@@ -1,13 +1,13 @@
 version: '3'
 services:
-  # database:
-  #   image: 'postgres:latest'
-  #   ports:
-  #     - 5432:5432
-  #   environment:
-  #     POSTGRES_USER: ${POSTGRES_USER} # The PostgreSQL user (useful to connect to the database)
-  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # The PostgreSQL password (useful to connect to the database)
-  #     POSTGRES_DB: ${POSTGRES_DB} # The PostgreSQL default database (automatically created at first launch)
+  database:
+    image: 'postgres:latest'
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER} # The PostgreSQL user (useful to connect to the database)
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # The PostgreSQL password (useful to connect to the database)
+      POSTGRES_DB: ${POSTGRES_DB} # The PostgreSQL default database (automatically created at first launch)
   redis:
     image: redis:latest
     container_name: my_redis

@@ -6,7 +6,7 @@ const REDIS_DATA_KEY = process.env.REDIS_DATA_KEY ?? "data";
 
 export const client = createClient({
     socket: {
-        host: process.env.REDIS_HOST || 'redis',
+        host: process.env.REDIS_HOST || 'localhost',
         port: parseInt(process.env.REDIS_PORT || '6379', 10)
     }
 });
