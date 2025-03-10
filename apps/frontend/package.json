@@ -11,6 +11,7 @@
     "prod": "pm2 serve dist/ 80 --name frontend --spa"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.6.1",
     "@tanstack/react-query": "^5.35.1",
     "axios": "^1.6.8",
     "chess.js": "^1.0.0-beta.8",
@@ -18,6 +19,7 @@
     "react": "^18.2.0",
     "react-chessboard": "^4.5.0",
     "react-dom": "^18.2.0",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^6.22.3",
     "zustand": "^4.5.2"
   },

@@ -1,20 +1,15 @@
 import { useEffect } from "react";
 import { usePersonStore } from "../contexts/auth";
-import { BACKEND_URL } from "../constants/routes";
-import axios from "axios";
+import { useRefreshTokenQuery } from "../queries/games";
 
 export const useGetUser = () => {
   const updateUser = usePersonStore((state) => state.updateUser);
+  const { data, isSuccess, isError } = useRefreshTokenQuery({});
 
   useEffect(() => {
-    (async () => {
-      const response = await axios.get(`${BACKEND_URL}/auth/refresh`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      });
-      updateUser(response.data.user);
-    })();
-  }, [updateUser]);
+    if (isSuccess && data) {
+      updateUser(data.user);
+    }
+  }, [isSuccess, isError, data, updateUser]);
+  
 };
