@@ -12,7 +12,7 @@ const Routers = () => {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/game" replace />} />
-          <Route path="/login" element={<Landing />} />
+          <Route path="/login" element={!user ? <Landing /> : <Game />} />
           <Route
             path="/game"
             element={user ? <Game /> : <Navigate to="/login" replace />}
