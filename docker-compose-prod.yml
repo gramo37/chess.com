@@ -39,8 +39,6 @@ services:
       REDIS_PORT: ${REDIS_PORT}
     depends_on:
       - redis
-    volumes:
-      - backend_logs:/app/logs
 
   ws:
     image: gramo37/chess-ws:latest
@@ -62,14 +60,9 @@ services:
       REDIS_PORT: ${REDIS_PORT}
     depends_on:
       - redis
-    volumes:
-      - ws_logs:/app/logs
 
   frontend:
     image: gramo37/chess-frontend:latest
-    args:
-        - VITE_WS_URL=${VITE_WS_URL}
-        - VITE_BACKEND_URL=${VITE_BACKEND_URL}
     ports:
       - "3000:3000"
     depends_on:
@@ -89,12 +82,7 @@ services:
       REDIS_DATA_KEY: "data"
       REDIS_HOST: redis
       REDIS_PORT: ${REDIS_PORT}
-    volumes:
-      - frontend_static:/usr/share/nginx/html
 
 volumes:
   postgres_data:
   redis_data:
-  backend_logs:
-  ws_logs:
-  frontend_static:
