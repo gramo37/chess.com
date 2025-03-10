@@ -8,11 +8,17 @@ services:
       POSTGRES_USER: ${POSTGRES_USER} # The PostgreSQL user (useful to connect to the database)
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # The PostgreSQL password (useful to connect to the database)
       POSTGRES_DB: ${POSTGRES_DB} # The PostgreSQL default database (automatically created at first launch)
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
   redis:
     image: redis:latest
     container_name: my_redis
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
+
   backend:
     image: gramo37/chess-backend:latest
     ports: 
@@ -33,6 +39,9 @@ services:
       REDIS_PORT: ${REDIS_PORT}
     depends_on:
       - redis
+    volumes:
+      - backend_logs:/app/logs
+
   ws:
     image: gramo37/chess-ws:latest
     ports: 
@@ -53,8 +62,14 @@ services:
       REDIS_PORT: ${REDIS_PORT}
     depends_on:
       - redis
+    volumes:
+      - ws_logs:/app/logs
+
   frontend:
     image: gramo37/chess-frontend:latest
+    args:
+        - VITE_WS_URL=${VITE_WS_URL}
+        - VITE_BACKEND_URL=${VITE_BACKEND_URL}
     ports:
       - "3000:3000"
     depends_on:
@@ -74,3 +89,12 @@ services:
       REDIS_DATA_KEY: "data"
       REDIS_HOST: redis
       REDIS_PORT: ${REDIS_PORT}
+    volumes:
+      - frontend_static:/usr/share/nginx/html
+
+volumes:
+  postgres_data:
+  redis_data:
+  backend_logs:
+  ws_logs:
+  frontend_static:

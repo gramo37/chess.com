@@ -8,19 +8,14 @@ services:
       POSTGRES_USER: ${POSTGRES_USER} # The PostgreSQL user (useful to connect to the database)
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # The PostgreSQL password (useful to connect to the database)
       POSTGRES_DB: ${POSTGRES_DB} # The PostgreSQL default database (automatically created at first launch)
-    volumes:
-      - postgres_data:/var/lib/postgresql/data # Persistent storage for PostgreSQL
-
   redis:
     image: redis:latest
     container_name: my_redis
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data # Persistent storage for Redis
-
   backend:
-    image: gramo37/chess-backend:latest
+    build:
+      context: ./apps/backend
     ports: 
       - "5000:5000"
     environment:
@@ -39,11 +34,9 @@ services:
       REDIS_PORT: ${REDIS_PORT}
     depends_on:
       - redis
-    volumes:
-      - backend_data:/app/data # Optional volume for backend data storage
-
   ws:
-    image: gramo37/chess-ws:latest
+    build:
+      context: ./apps/ws
     ports: 
       - "8000:8000"
     environment:
@@ -62,11 +55,12 @@ services:
       REDIS_PORT: ${REDIS_PORT}
     depends_on:
       - redis
-    volumes:
-      - ws_data:/app/data # Optional volume for WebSocket service data storage
-
   frontend:
-    image: gramo37/chess-frontend:latest
+    build:
+      context: ./apps/frontend
+      args:
+        - VITE_WS_URL=${VITE_WS_URL}
+        - VITE_BACKEND_URL=${VITE_BACKEND_URL}
     ports:
       - "3000:3000"
     depends_on:
@@ -86,12 +80,3 @@ services:
       REDIS_DATA_KEY: "data"
       REDIS_HOST: redis
       REDIS_PORT: ${REDIS_PORT}
-    volumes:
-      - frontend_data:/app/data # Optional volume for frontend data storage
-
-volumes:
-  postgres_data:
-  redis_data:
-  backend_data:
-  ws_data:
-  frontend_data:

@@ -5,6 +5,10 @@ FROM node:18
 ARG VITE_BACKEND_URL
 ARG VITE_WS_URL
 
+# Set as environment variables so Vite can access them
+ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
+ENV VITE_WS_URL=${VITE_WS_URL}
+
 # Set the working directory inside the container
 WORKDIR /app
 
@@ -16,9 +20,6 @@ RUN npm install
 
 # Copy the rest of the application code to the working directory
 COPY . .
-
-RUN echo "REACT_APP_API_URL=$VITE_BACKEND_URL" >> .env \
-    && echo "REACT_APP_API_PORT=$VITE_WS_URL" >> .env
 
 # Build the application
 RUN npm run build
