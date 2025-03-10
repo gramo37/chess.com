@@ -10,7 +10,25 @@ export const gameAPI = api.injectEndpoints({
         baseURLOveride: BACKEND_URL,
       }),
     }),
+    getAllUsers: builder.query({
+      query: () => ({
+        url: "/all_users",
+        method: "GET",
+        baseURLOveride: BACKEND_URL,
+      }),
+    }),
+    getActiveUsers: builder.query({
+      query: () => ({
+        url: "/active_users",
+        method: "GET",
+        baseURLOveride: BACKEND_URL,
+      }),
+    }),
   }),
 });
 
-export const { useRefreshTokenQuery } = gameAPI;
+export const {
+  useRefreshTokenQuery,
+  useGetActiveUsersQuery,
+  useGetAllUsersQuery,
+} = gameAPI;

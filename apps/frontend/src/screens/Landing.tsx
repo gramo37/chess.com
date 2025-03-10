@@ -1,9 +1,7 @@
 import { BACKEND_URL } from "../constants/routes";
-import axios from "axios";
-import { useQuery } from "@tanstack/react-query";
+import { useGetActiveUsersQuery, useGetAllUsersQuery } from "../queries/games";
 
 export default function Landing() {
-
   const signup = () => {
     window.open(`${BACKEND_URL}/auth/register`, "_self");
   };
@@ -14,33 +12,10 @@ export default function Landing() {
 
   const playasguest = () => {
     window.open(`${BACKEND_URL}/auth/guest-login`, "_self");
-  }
+  };
 
-  const { data } = useQuery({
-    queryKey: ["myGames"],
-    queryFn: async () => {
-      const res = await axios.get(`${BACKEND_URL}/active_users`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      });
-      return res.data;
-    },
-  });
-
-  const { data: users } = useQuery({
-    queryKey: ["allUsers"],
-    queryFn: async () => {
-      const res = await axios.get(`${BACKEND_URL}/all_users`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      });
-      return res.data;
-    },
-  });
+  const { data: users } = useGetAllUsersQuery({});
+  const { data } = useGetActiveUsersQuery({});
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
@@ -77,8 +52,12 @@ export default function Landing() {
             </button>
           </div>
           <div className="mt-8">
-            <h3 className="text-sm font-light italic text-gray-300">Active Users: {(data?.games ?? 0) * 2}</h3>
-            <h3 className="text-sm font-light italic text-gray-300">Users: {(users?.users ?? 0)}</h3>
+            <h3 className="text-sm font-light italic text-gray-300">
+              Active Users: {(data?.games ?? 0) * 2}
+            </h3>
+            <h3 className="text-sm font-light italic text-gray-300">
+              Users: {users?.users ?? 0}
+            </h3>
           </div>
         </div>
       </div>
