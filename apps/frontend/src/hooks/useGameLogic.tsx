@@ -12,10 +12,10 @@ import {
   REJECT_DRAW,
   RESIGN,
 } from "../constants";
-import { useEffect, useRef, useState } from "react";
-import useTimer from "../hooks/useTimer";
+import { useEffect, useRef } from "react";
 import { useGameStore } from "../contexts/game.context";
 import { Chess } from "chess.js";
+import useTimer from "./useTimer";
 
 const useGamelogic = () => {
   const {
@@ -31,6 +31,7 @@ const useGamelogic = () => {
     socket,
     setOpponent,
     setPlayer,
+    setSendingMove
   } = useGameStore([
     "setBoard",
     "isGameStarted",
@@ -46,8 +47,8 @@ const useGamelogic = () => {
     "setOpponent",
     "player",
     "setPlayer",
+    "setSendingMove"
   ]);
-  const [loading, setLoading] = useState(false);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const {
@@ -90,7 +91,7 @@ const useGamelogic = () => {
         setBoard(message.payload.board);
         setMoves(message.payload.moves);
         setSans(message.payload.sans);
-        setLoading(false);
+        setSendingMove(false);
         const chess = new Chess(message.payload.board);
         if (chess.turn() === "w") {
           startPlayer1Timer(message.payload.player1TimeLeft);
@@ -113,7 +114,7 @@ const useGamelogic = () => {
           gameResult: message.payload?.result,
         });
         setIsGameStarted(false);
-        setLoading(false);
+        setSendingMove(false);
         stopPlayer1Timer();
         stopPlayer2Timer();
         // queryClient.invalidateQueries({ queryKey: ["myGames"] });
@@ -139,7 +140,7 @@ const useGamelogic = () => {
       } else if (message.type === REJECT_DRAW) {
         alert("Opponent rejected the offer of draw");
       } else if (message.type === INVALID_MOVE) {
-        setLoading(false);
+        setSendingMove(false);
       } else if (message.type === GAMEABORTED) {
         setIsGameStarted(false);
       } else if (message.type === GET_TIME) {
@@ -181,10 +182,8 @@ const useGamelogic = () => {
   }, [socket]);
 
   return {
-    loading,
-    setLoading,
-    player2timeLeft,
-    player1timeLeft
+    player1timeLeft,
+    player2timeLeft
   }
 };
 

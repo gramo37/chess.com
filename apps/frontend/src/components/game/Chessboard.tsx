@@ -5,8 +5,8 @@ import {
 } from "react-chessboard/dist/chessboard/types";
 import { useState } from "react";
 import { Chessboard as ReactChessBoard } from "react-chessboard";
-import { isPromotion } from "../../utils/game";
-import { TMove } from "../../types/game";
+import { formatTime, isPromotion } from "../../utils/game";
+import { TColor, TMove } from "../../types/game";
 import { useGameStore } from "../../contexts/game.context";
 import { MOVE } from "../../constants";
 
@@ -15,9 +15,11 @@ interface HighlightedSquares {
 }
 
 const Chessboard = ({
-  setLoading,
+  player1timeLeft,
+  player2timeLeft,
 }: {
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  player1timeLeft: number;
+  player2timeLeft: number;
 }) => {
   const [showPromotionDialog, setShowPromotionDialog] = useState(false);
   const [highlightedSquares, setHighlightedSquares] =
@@ -26,13 +28,17 @@ const Chessboard = ({
   const [selectedPiece, setSelectedPiece] = useState<Piece | null>(null);
   const [promotionSquare, setPromotionSquare] = useState<Square | null>(null);
 
-  const { board, isGameStarted, color, setBoard, socket } = useGameStore([
-    "board",
-    "isGameStarted",
-    "color",
-    "setBoard",
-    "socket",
-  ]);
+  const { board, isGameStarted, color, setBoard, socket, opponent, player, setSendingMove } =
+    useGameStore([
+      "board",
+      "isGameStarted",
+      "color",
+      "setBoard",
+      "socket",
+      "opponent",
+      "player",
+      "setSendingMove"
+    ]);
 
   const makeAMove = (sourceSquare: Square, targetSquare: Square) => {
     try {
@@ -64,7 +70,7 @@ const Chessboard = ({
         return;
       chess.move(move);
       setBoard(chess.fen());
-      if (isGameStarted) setLoading(true);
+      if (isGameStarted) setSendingMove(true);
       socket?.send(
         JSON.stringify({
           type: MOVE,
@@ -114,55 +120,101 @@ const Chessboard = ({
   };
 
   return (
-    <ReactChessBoard
-      position={board}
-      showPromotionDialog={showPromotionDialog}
-      promotionDialogVariant="modal"
-      onDragOverSquare={(square) => {
-        // Update the promotionSquare here
-        if (selectedPiece && isPromotion(square, selectedPiece)) {
-          setPromotionSquare(square);
-        }
-      }}
-      onPieceDragBegin={(piece, sourceSquare) => {
-        setSelectedPiece(piece);
-        setSelectedSquare(sourceSquare);
-      }}
-      onPromotionPieceSelect={(piece?: PromotionPieceOption) => {
-        if (!piece || !selectedSquare || !promotionSquare) {
-          setShowPromotionDialog(false);
-          return false;
-        }
-        try {
-          const promotion = piece?.[1].toLowerCase();
-          socket?.send(
-            JSON.stringify({
-              type: MOVE,
-              move: {
-                from: selectedSquare,
-                to: promotionSquare,
-                promotion,
-              },
-            })
-          );
-          setPromotionSquare(null);
-          return true;
-        } catch (error) {
-          console.log(error);
-          return false;
-        } finally {
-          setShowPromotionDialog(false);
-          setSelectedSquare(null);
-          setSelectedPiece(null);
-        }
-      }}
-      // boardWidth={500}
-      onPieceDrop={onDrop}
-      boardOrientation={color ?? "white"}
-      onSquareClick={onSquareClick}
-      customSquareStyles={highlightedSquares}
-    />
+    <div className="w-full lg:w-1/2 p-4 lg:p-8 flex flex-col items-center">
+      <div className="mb-4 text-center">
+        <h2 className="text-xl font-bold text-gray-300">
+          {opponent?.name ?? ""}
+        </h2>
+        <p className="text-gray-400">
+          Time left:{" "}
+          {color === "white"
+            ? formatTime(player2timeLeft)
+            : formatTime(player1timeLeft)}
+        </p>
+      </div>
+      <TimerComponent
+        name={opponent?.name ?? ""}
+        color={color}
+        whiteTimer={formatTime(player2timeLeft)}
+        blackTimer={formatTime(player1timeLeft)}
+      />
+      <ReactChessBoard
+        position={board}
+        showPromotionDialog={showPromotionDialog}
+        promotionDialogVariant="modal"
+        onDragOverSquare={(square) => {
+          // Update the promotionSquare here
+          if (selectedPiece && isPromotion(square, selectedPiece)) {
+            setPromotionSquare(square);
+          }
+        }}
+        onPieceDragBegin={(piece, sourceSquare) => {
+          setSelectedPiece(piece);
+          setSelectedSquare(sourceSquare);
+        }}
+        onPromotionPieceSelect={(piece?: PromotionPieceOption) => {
+          if (!piece || !selectedSquare || !promotionSquare) {
+            setShowPromotionDialog(false);
+            return false;
+          }
+          try {
+            const promotion = piece?.[1].toLowerCase();
+            socket?.send(
+              JSON.stringify({
+                type: MOVE,
+                move: {
+                  from: selectedSquare,
+                  to: promotionSquare,
+                  promotion,
+                },
+              })
+            );
+            setPromotionSquare(null);
+            return true;
+          } catch (error) {
+            console.log(error);
+            return false;
+          } finally {
+            setShowPromotionDialog(false);
+            setSelectedSquare(null);
+            setSelectedPiece(null);
+          }
+        }}
+        // boardWidth={500}
+        onPieceDrop={onDrop}
+        boardOrientation={color ?? "white"}
+        onSquareClick={onSquareClick}
+        customSquareStyles={highlightedSquares}
+      />
+      <TimerComponent
+        name={player?.name ?? ""}
+        color={color}
+        whiteTimer={formatTime(player1timeLeft)}
+        blackTimer={formatTime(player2timeLeft)}
+      />
+    </div>
   );
 };
+
+function TimerComponent({
+  name,
+  color,
+  whiteTimer,
+  blackTimer,
+}: {
+  name: string;
+  color: TColor;
+  whiteTimer: string;
+  blackTimer: string;
+}) {
+  return (
+    <div className="mt-4 text-center">
+      <h2 className="text-xl font-bold text-gray-300">{name}</h2>
+      <p className="text-gray-400">
+        Time left: {color === "white" ? whiteTimer : blackTimer}
+      </p>
+    </div>
+  );
+}
 
 export default Chessboard;
