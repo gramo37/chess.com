@@ -28,17 +28,25 @@ const Chessboard = ({
   const [selectedPiece, setSelectedPiece] = useState<Piece | null>(null);
   const [promotionSquare, setPromotionSquare] = useState<Square | null>(null);
 
-  const { board, isGameStarted, color, setBoard, socket, opponent, player, setSendingMove } =
-    useGameStore([
-      "board",
-      "isGameStarted",
-      "color",
-      "setBoard",
-      "socket",
-      "opponent",
-      "player",
-      "setSendingMove"
-    ]);
+  const {
+    board,
+    isGameStarted,
+    color,
+    setBoard,
+    socket,
+    opponent,
+    player,
+    setSendingMove,
+  } = useGameStore([
+    "board",
+    "isGameStarted",
+    "color",
+    "setBoard",
+    "socket",
+    "opponent",
+    "player",
+    "setSendingMove",
+  ]);
 
   const makeAMove = (sourceSquare: Square, targetSquare: Square) => {
     try {
@@ -121,17 +129,6 @@ const Chessboard = ({
 
   return (
     <div className="w-full lg:w-1/2 p-4 lg:p-8 flex flex-col items-center">
-      <div className="mb-4 text-center">
-        <h2 className="text-xl font-bold text-gray-300">
-          {opponent?.name ?? ""}
-        </h2>
-        <p className="text-gray-400">
-          Time left:{" "}
-          {color === "white"
-            ? formatTime(player2timeLeft)
-            : formatTime(player1timeLeft)}
-        </p>
-      </div>
       <TimerComponent
         name={opponent?.name ?? ""}
         color={color}
