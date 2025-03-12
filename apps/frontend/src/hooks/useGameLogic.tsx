@@ -15,7 +15,6 @@ import {
 import { useEffect, useRef } from "react";
 import { useGameStore } from "../contexts/game.context";
 import { Chess } from "chess.js";
-import useTimer from "./useTimer";
 
 const useGamelogic = () => {
   const {
@@ -31,38 +30,32 @@ const useGamelogic = () => {
     socket,
     setOpponent,
     setPlayer,
-    setSendingMove
+    setSendingMove,
+    startPlayerTimer,
+    stopPlayerTimer,
+    setPlayer1TimeLeft,
+    setPlayer2TimeLeft
   } = useGameStore([
-    "setBoard",
     "isGameStarted",
-    "setIsGameStarted",
+    "color",
+    "result",
+    "setBoard",
     "setMoves",
     "setSans",
-    "color",
     "setColor",
-    "result",
     "setResult",
+    "setIsGameStarted",
     "socket",
-    "opponent",
     "setOpponent",
-    "player",
     "setPlayer",
-    "setSendingMove"
+    "setSendingMove",
+    "startPlayerTimer",
+    "stopPlayerTimer",
+    "setPlayer1TimeLeft",
+    "setPlayer2TimeLeft"
   ]);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const {
-    timeLeft: player1timeLeft,
-    start: startPlayer1Timer,
-    stop: stopPlayer1Timer,
-    setTimeLeft: setPlayer1TimeLeft,
-  } = useTimer();
-  const {
-    timeLeft: player2timeLeft,
-    start: startPlayer2Timer,
-    stop: stopPlayer2Timer,
-    setTimeLeft: setPlayer2TimeLeft,
-  } = useTimer();
 
   const acceptDraw = () => {
     socket?.send(
@@ -94,18 +87,18 @@ const useGamelogic = () => {
         setSendingMove(false);
         const chess = new Chess(message.payload.board);
         if (chess.turn() === "w") {
-          startPlayer1Timer(message.payload.player1TimeLeft);
-          stopPlayer2Timer();
+          startPlayerTimer(1, message.payload.player1TimeLeft);
+          stopPlayerTimer(2);
         } else {
-          startPlayer2Timer(message.payload.player2TimeLeft);
-          stopPlayer1Timer();
+          startPlayerTimer(2, message.payload.player2TimeLeft);
+          stopPlayerTimer(1);
         }
       } else if (message.type === GAMESTARTED) {
         setColor(message.payload.color);
         setBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
         setOpponent(message.payload.opponent);
         setPlayer(message.payload.player);
-        startPlayer1Timer(message.payload.player1TimeLeft);
+        startPlayerTimer(1, message.payload.player1TimeLeft);
       } else if (message.type === GAMEOVER) {
         setMoves([]);
         setResult({
@@ -115,8 +108,8 @@ const useGamelogic = () => {
         });
         setIsGameStarted(false);
         setSendingMove(false);
-        stopPlayer1Timer();
-        stopPlayer2Timer();
+        stopPlayerTimer(1);
+        stopPlayerTimer(2);
         // queryClient.invalidateQueries({ queryKey: ["myGames"] });
       } else if (message.type === GAMERESTARTED) {
         setBoard(message.payload.board);
@@ -127,9 +120,9 @@ const useGamelogic = () => {
         setPlayer(message.payload.player);
         const chess = new Chess(message.payload.board);
         if (chess.turn() === "w") {
-          startPlayer1Timer(message.payload.player1TimeLeft);
+          startPlayerTimer(1, message.payload.player1TimeLeft);
         } else {
-          startPlayer2Timer(message.payload.player2TimeLeft);
+          startPlayerTimer(2, message.payload.player2TimeLeft);
         }
       } else if (message.type === OFFER_DRAW) {
         if (confirm("Opponents was a draw. Do you want to draw ?")) {
@@ -180,11 +173,6 @@ const useGamelogic = () => {
       }
     };
   }, [socket]);
-
-  return {
-    player1timeLeft,
-    player2timeLeft
-  }
 };
 
 export default useGamelogic;

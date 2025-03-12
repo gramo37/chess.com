@@ -14,13 +14,7 @@ interface HighlightedSquares {
   [square: string]: React.CSSProperties;
 }
 
-const Chessboard = ({
-  player1timeLeft,
-  player2timeLeft,
-}: {
-  player1timeLeft: number;
-  player2timeLeft: number;
-}) => {
+const Chessboard = () => {
   const [showPromotionDialog, setShowPromotionDialog] = useState(false);
   const [highlightedSquares, setHighlightedSquares] =
     useState<HighlightedSquares>({});
@@ -37,6 +31,8 @@ const Chessboard = ({
     opponent,
     player,
     setSendingMove,
+    player1TimeLeft,
+    player2TimeLeft
   } = useGameStore([
     "board",
     "isGameStarted",
@@ -46,6 +42,8 @@ const Chessboard = ({
     "opponent",
     "player",
     "setSendingMove",
+    "player1TimeLeft",
+    "player2TimeLeft"
   ]);
 
   const makeAMove = (sourceSquare: Square, targetSquare: Square) => {
@@ -132,8 +130,8 @@ const Chessboard = ({
       <TimerComponent
         name={opponent?.name ?? ""}
         color={color}
-        whiteTimer={formatTime(player2timeLeft)}
-        blackTimer={formatTime(player1timeLeft)}
+        whiteTimer={formatTime(player2TimeLeft)}
+        blackTimer={formatTime(player1TimeLeft)}
       />
       <ReactChessBoard
         position={board}
@@ -186,8 +184,8 @@ const Chessboard = ({
       <TimerComponent
         name={player?.name ?? ""}
         color={color}
-        whiteTimer={formatTime(player1timeLeft)}
-        blackTimer={formatTime(player2timeLeft)}
+        whiteTimer={formatTime(player1TimeLeft)}
+        blackTimer={formatTime(player2TimeLeft)}
       />
     </div>
   );

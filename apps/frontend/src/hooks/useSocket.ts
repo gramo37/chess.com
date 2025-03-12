@@ -4,7 +4,7 @@ import { usePersonStore } from "../contexts/auth";
 import { useGameStore } from "../contexts/game.context";
 
 export const useInitSocket = () => {
-  const user = usePersonStore((state) => state.user);
+  const { user } = usePersonStore(["user"]);
   const { setSocket } = useGameStore(["setSocket"]);
 
   useEffect(() => {

@@ -5,16 +5,12 @@ import GameOptions from "../components/game/GameOptions";
 
 export default function Game() {
   useInitSocket();
-
-  const { player1timeLeft, player2timeLeft } = useGamelogic();
+  useGamelogic();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 p-0 sm:p-4">
       <div className="flex flex-col lg:flex-row bg-gray-800 rounded-lg shadow-lg overflow-hidden w-full sm:w-[70%] lg:w-[85%] max-w-7xl">
-        <Chessboard
-          player1timeLeft={player1timeLeft}
-          player2timeLeft={player2timeLeft}
-        />
+        <Chessboard />
         <GameOptions />
       </div>
     </div>

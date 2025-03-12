@@ -6,7 +6,7 @@ import { usePersonStore } from "./contexts/auth";
 
 const Routers = () => {
   useGetUser();
-  const user = usePersonStore((state) => state.user);
+  const { user } = usePersonStore(["user"]);
   return (
     <div className="bg-slate-900 h-full w-screen">
       <BrowserRouter>

@@ -15,9 +15,8 @@ const processMoves = (moves: string[]) => {
 const Moves = () => {
   const { color, sans, socket, result } = useGameStore([
     "color",
-    "socket",
     "sans",
-    "isGameStarted",
+    "socket",
     "result",
   ]);
   const processedMoves = processMoves(sans);
