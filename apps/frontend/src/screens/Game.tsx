@@ -2,10 +2,12 @@ import { useInitSocket } from "../hooks/useSocket";
 import Chessboard from "../components/game/Chessboard";
 import useGamelogic from "../hooks/useGameLogic";
 import GameOptions from "../components/game/GameOptions";
+import useGameResult from "../hooks/useGameResult";
 
 export default function Game() {
   useInitSocket();
   useGamelogic();
+  useGameResult();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 p-0 sm:p-4">
