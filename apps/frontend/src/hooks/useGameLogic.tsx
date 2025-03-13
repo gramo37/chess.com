@@ -12,9 +12,10 @@ import {
   OFFER_DRAW,
   REJECT_DRAW,
 } from "../constants";
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import { useGameStore } from "../contexts/game.context";
 import { Chess } from "chess.js";
+import { useGlobalStore } from "../contexts/global.context";
 
 const useGamelogic = () => {
   const {
@@ -48,8 +49,9 @@ const useGamelogic = () => {
     "setPlayer1TimeLeft",
     "setPlayer2TimeLeft",
   ]);
+  const { openModal } = useGlobalStore(["openModal"]);
 
-  const acceptDraw = useCallback(() => {
+  const acceptDraw = () => {
     socket?.send(
       JSON.stringify({
         type: ENDGAME,
@@ -58,102 +60,84 @@ const useGamelogic = () => {
         },
       })
     );
-  }, [socket]);
+  }
 
-  const rejectDraw = useCallback(() => {
+  const rejectDraw = () => {
     socket?.send(
       JSON.stringify({
         type: REJECT_DRAW,
       })
-    );
-  }, [socket]);
+    )
+  }
 
-  const handleMoveSuccess = useCallback(
-    (payload: any) => {
-      setBoard(payload.board);
-      setMoves(payload.moves);
-      setSans(payload.sans);
-      setSendingMove(false);
-      const chess = new Chess(payload.board);
-      if (chess.turn() === "w") {
-        startPlayerTimer(1, payload.player1TimeLeft);
-        stopPlayerTimer(2);
-      } else {
-        startPlayerTimer(2, payload.player2TimeLeft);
-        stopPlayerTimer(1);
-      }
-    },
-    [
-      setBoard,
-      setMoves,
-      setSans,
-      setSendingMove,
-      startPlayerTimer,
-      stopPlayerTimer,
-    ]
-  );
-
-  const handleGameStarted = useCallback(
-    (payload: any) => {
-      setColor(payload.color);
-      setBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-      setOpponent(payload.opponent);
-      setPlayer(payload.player);
+  const handleMoveSuccess = (payload: any) => {
+    setBoard(payload.board);
+    setMoves(payload.moves);
+    setSans(payload.sans);
+    setSendingMove(false);
+    const chess = new Chess(payload.board);
+    if (chess.turn() === "w") {
       startPlayerTimer(1, payload.player1TimeLeft);
-    },
-    [setBoard, setColor, setOpponent, setPlayer, startPlayerTimer]
-  );
-
-  const handleGameOver = useCallback(
-    (payload: any) => {
-      setMoves([]);
-      setResult({
-        winner: payload.winner?.color,
-        loser: payload.loser?.color,
-        gameResult: payload?.result,
-      });
-      setIsGameStarted(false);
-      setSendingMove(false);
-      stopPlayerTimer(1);
       stopPlayerTimer(2);
-      // queryClient.invalidateQueries({ queryKey: ["myGames"] });
-    },
-    [setIsGameStarted, setMoves, setResult, setSendingMove, stopPlayerTimer]
-  );
-
-  const handleGameRestarted = useCallback(
-    (payload: any) => {
-      setBoard(payload.board);
-      setMoves(payload.moves);
-      setSans(payload.sans);
-      setColor(payload.color);
-      setOpponent(payload.opponent);
-      setPlayer(payload.player);
-      const chess = new Chess(payload.board);
-      if (chess.turn() === "w") {
-        startPlayerTimer(1, payload.player1TimeLeft);
-      } else {
-        startPlayerTimer(2, payload.player2TimeLeft);
-      }
-    },
-    [
-      setBoard,
-      setColor,
-      setMoves,
-      setOpponent,
-      setPlayer,
-      setSans,
-      startPlayerTimer,
-    ]
-  );
-
-  const handleOfferDraw = useCallback(() => {
-    if (confirm("Opponents was a draw. Do you want to draw ?")) {
-      acceptDraw();
     } else {
-      rejectDraw();
+      startPlayerTimer(2, payload.player2TimeLeft);
+      stopPlayerTimer(1);
     }
-  }, [acceptDraw, rejectDraw]);
+  };
+
+  const handleGameStarted = (payload: any) => {
+    setColor(payload.color);
+    setBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    setOpponent(payload.opponent);
+    setPlayer(payload.player);
+    startPlayerTimer(1, payload.player1TimeLeft);
+  };
+
+  const handleGameOver = (payload: any) => {
+    setMoves([]);
+    setResult({
+      winner: payload.winner?.color,
+      loser: payload.loser?.color,
+      gameResult: payload?.result,
+    });
+    setIsGameStarted(false);
+    setSendingMove(false);
+    stopPlayerTimer(1);
+    stopPlayerTimer(2);
+    // queryClient.invalidateQueries({ queryKey: ["myGames"] });
+  };
+
+  const handleGameRestarted = (payload: any) => {
+    setBoard(payload.board);
+    setMoves(payload.moves);
+    setSans(payload.sans);
+    setColor(payload.color);
+    setOpponent(payload.opponent);
+    setPlayer(payload.player);
+    const chess = new Chess(payload.board);
+    if (chess.turn() === "w") {
+      startPlayerTimer(1, payload.player1TimeLeft);
+    } else {
+      startPlayerTimer(2, payload.player2TimeLeft);
+    }
+  };
+
+  const handleOfferDraw = () => {
+    openModal({
+      title: "Draw Offer",
+      description: "Opponent wants to draw.",
+      buttons: [
+        {
+          text: "Accept",
+          onClick: acceptDraw,
+        },
+        {
+          text: "Reject",
+          onClick: rejectDraw,
+        },
+      ]
+    });
+  };
 
   useEffect(() => {
     if (!socket) return;
@@ -178,7 +162,10 @@ const useGamelogic = () => {
           handleOfferDraw();
           break;
         case REJECT_DRAW:
-          alert("Opponent rejected the draw offer.");
+          openModal({
+            title: "Draw Offer Rejected",
+            description: "Opponent rejected the draw offer.",
+          })
           break;
         case INVALID_MOVE:
           setSendingMove(false);
@@ -193,10 +180,10 @@ const useGamelogic = () => {
       }
     };
 
-    socket.addEventListener("message", handleMessage);
+    socket.onmessage = handleMessage;
 
     return () => {
-      socket.removeEventListener("message", handleMessage);
+      socket.onmessage = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setBoard, setColor, setIsGameStarted, setMoves, setResult, socket]);
