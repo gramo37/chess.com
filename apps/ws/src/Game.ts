@@ -301,6 +301,7 @@ export class Game {
           },
           player1TimeLeft: this.player1TimeLeft,
           player2TimeLeft: this.player2TimeLeft,
+          gameId: this.gameId
         },
       });
 
@@ -316,6 +317,7 @@ export class Game {
           },
           player1TimeLeft: this.player1TimeLeft,
           player2TimeLeft: this.player2TimeLeft,
+          gameId: this.gameId
         },
       });
 
@@ -338,6 +340,7 @@ export class Game {
         },
         player1TimeLeft: this.player1TimeLeft,
         player2TimeLeft: this.player2TimeLeft,
+        gameId: this.gameId
       },
     });
 
@@ -356,6 +359,7 @@ export class Game {
         },
         player1TimeLeft: this.player1TimeLeft,
         player2TimeLeft: this.player2TimeLeft,
+        gameId: this.gameId
       },
     });
     this.startPlayer1Timer();

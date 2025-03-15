@@ -16,6 +16,7 @@ import { useEffect } from "react";
 import { useGameStore } from "../contexts/game.context";
 import { Chess } from "chess.js";
 import { useGlobalStore } from "../contexts/global.context";
+import { useNavigate } from "react-router-dom";
 
 const useGamelogic = () => {
   const {
@@ -33,6 +34,7 @@ const useGamelogic = () => {
     stopPlayerTimer,
     setPlayer1TimeLeft,
     setPlayer2TimeLeft,
+    setGameId
   } = useGameStore([
     "setBoard",
     "setMoves",
@@ -48,8 +50,10 @@ const useGamelogic = () => {
     "stopPlayerTimer",
     "setPlayer1TimeLeft",
     "setPlayer2TimeLeft",
+    "setGameId"
   ]);
   const { openModal } = useGlobalStore(["openModal"]);
+  const navigate = useNavigate();
 
   const acceptDraw = () => {
     socket?.send(
@@ -91,6 +95,8 @@ const useGamelogic = () => {
     setOpponent(payload.opponent);
     setPlayer(payload.player);
     startPlayerTimer(1, payload.player1TimeLeft);
+    setGameId(payload.gameId);
+    navigate(`/game/${payload.gameId}`);
   };
 
   const handleGameOver = (payload: any) => {
@@ -104,6 +110,7 @@ const useGamelogic = () => {
     setSendingMove(false);
     stopPlayerTimer(1);
     stopPlayerTimer(2);
+    setGameId(null);
     // queryClient.invalidateQueries({ queryKey: ["myGames"] });
   };
 
@@ -120,6 +127,8 @@ const useGamelogic = () => {
     } else {
       startPlayerTimer(2, payload.player2TimeLeft);
     }
+    setGameId(payload.gameId);
+    navigate(`/game/${payload.gameId}`);
   };
 
   const handleOfferDraw = () => {

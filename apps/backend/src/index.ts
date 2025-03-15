@@ -18,7 +18,7 @@ dotenv.config();
 const app = express();
 const ejs = require("ejs");
 const PORT = process.env.BACKEND_PORT ?? 3000;
-const BACKEND_ROUTE = "api"
+const BACKEND_ROUTE = "api";
 
 initPassport(passport);
 connectToRedis();
@@ -42,7 +42,7 @@ const allowedHosts = process.env.ALLOWED_HOSTS
   ? process.env.ALLOWED_HOSTS.split(",")
   : [];
 
-console.log(allowedHosts)
+console.log(allowedHosts);
 
 app.use(
   cors({
@@ -56,52 +56,74 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
 app.get(`/${BACKEND_ROUTE}/404notfound`, (req, res) => {
-  res.render("notfound")
-})
+  res.render("notfound");
+});
 app.get(`/${BACKEND_ROUTE}/error`, (req, res) => {
-  res.render("error")
-})
+  res.render("error");
+});
 
 app.get(`/${BACKEND_ROUTE}/active_users`, async (req, res) => {
   try {
     const games = await db.game.count({
       where: {
-        status: "IN_PROGRESS"
-      }
-    })
+        status: "IN_PROGRESS",
+      },
+    });
     res.status(200).json({
-      games
-    })
+      games,
+    });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.redirect(`/error`);
     // res.status(500).send("Something Went Wrong!")
   }
-})
+});
 
 app.get(`/${BACKEND_ROUTE}/all_users`, async (req, res) => {
   try {
     const users = await db.user.count({
       where: {
-        isGuest: false
-      }
-    })
+        isGuest: false,
+      },
+    });
     res.status(200).json({
-      users
-    })
+      users,
+    });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.redirect(`/error`);
     // res.status(500).send("Something Went Wrong!")
   }
-})
+});
+
+app.get(`/${BACKEND_ROUTE}/getGameStatus`, async (req, res) => {
+  try {
+    const { gameId } = req.query;
+    if (gameId && typeof gameId === "string") {
+      const gameData = await db.game.findFirst({
+        where: {
+          id: gameId,
+        },
+      });
+      return res.status(200).json({
+        gameData,
+      });
+    }
+    return res.status(404).json({
+      gameData: null,
+    });
+  } catch (e) {
+    console.log(e);
+    res.status(500).send("Something Went Wrong!");
+  }
+});
 
 app.use(`/${BACKEND_ROUTE}/me`, router);
 
 app.use(`/${BACKEND_ROUTE}/auth`, auth);
 
-cron.schedule('*/10 * * * * *', async function () {
-  await sendMovesToDB()
+cron.schedule("*/10 * * * * *", async function () {
+  await sendMovesToDB();
 });
 
 app.listen(PORT, () => {

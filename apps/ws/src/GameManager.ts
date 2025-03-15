@@ -19,7 +19,7 @@ import { sendMessage } from "./utils";
 import { extractUser } from "./auth";
 import { db } from "./db";
 import { TMove } from "./types/game.types";
-import { TEndGamePayload } from "./types";
+import { TEndGamePayload, TInitGamepayload } from "./types";
 import { seedBoard } from "./utils/game";
 
 export class GameManager {
@@ -47,7 +47,7 @@ export class GameManager {
       const message = JSON.parse(data.toString());
       switch (message?.type) {
         case INIT_GAME:
-          await self.initGame(socket, token);
+          await self.initGame(socket, token, message.payload);
           break;
         case MOVE:
           await self.makeMove(socket, message.move);
@@ -164,16 +164,34 @@ export class GameManager {
       });
   }
 
-  async initGame(socket: WebSocket, token: string) {
+  async initGame(socket: WebSocket, token: string, payload: TInitGamepayload) {
     const user = await extractUser(token);
     if (!user || !user.name || !user.id) return;
+
+    // Game id is given
+      // If the game is completed return
+      // If not, then use the data for this game id
+    // Game id not given
+      // Check for the user's inprogress game 
+    let db_game: any;
+    if(payload?.gameId) {
+      db_game = await db.game.findFirst({
+        where: {
+          id: payload?.gameId,
+          status: IN_PROGRESS,
+        }
+      });
+      if(!db_game) return;
+    } else {
+      db_game = await db.game.findFirst({
+        where: {
+          OR: [{ blackPlayerId: user.id }, { whitePlayerId: user.id }],
+          status: IN_PROGRESS,
+        },
+      });
+    }
+
     // Check for pending games in db
-    let db_game = await db.game.findFirst({
-      where: {
-        OR: [{ blackPlayerId: user.id }, { whitePlayerId: user.id }],
-        status: IN_PROGRESS,
-      },
-    });
     if (db_game) {
       // Check for the game locally
       const game = this.games.find((item) => item.getGameId() === db_game?.id);

@@ -24,6 +24,16 @@ export const gameAPI = api.injectEndpoints({
         baseURLOveride: BACKEND_URL,
       }),
     }),
+    getGameStatus: builder.query({
+      query: (gameId) => ({
+        url: "/getGameStatus",
+        method: "GET",
+        baseURLOveride: BACKEND_URL,
+        params: {
+          gameId
+        }
+      })
+    })
   }),
 });
 
@@ -31,4 +41,5 @@ export const {
   useRefreshTokenQuery,
   useGetActiveUsersQuery,
   useGetAllUsersQuery,
+  useGetGameStatusQuery
 } = gameAPI;
