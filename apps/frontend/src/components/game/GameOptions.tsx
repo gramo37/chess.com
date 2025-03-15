@@ -3,10 +3,8 @@ import { useGameStore } from "../../contexts/game.context";
 import Moves from "./Moves";
 import NewGame from "./NewGame";
 
-
 const GameOptions = () => {
-  const { isGameStarted, color, result, sendingMove } = useGameStore([
-    "isGameStarted",
+  const { color, result, sendingMove } = useGameStore([
     "color",
     "result",
     "sendingMove",
@@ -23,8 +21,8 @@ const GameOptions = () => {
         </p>
       )}
       <div className="hidden">{sendingMove}</div>
-      {!isGameStarted && <NewGame />}
-      {isGameStarted && <Moves />}
+      <NewGame />
+      <Moves />
     </div>
   );
 };

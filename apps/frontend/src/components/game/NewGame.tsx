@@ -3,11 +3,12 @@ import { BACKEND_URL } from "../../constants/routes";
 import { useGameStore } from "../../contexts/game.context";
 
 const NewGame = () => {
-  const { setIsGameStarted, setResult, socket, setColor } = useGameStore([
+  const { isGameStarted, setIsGameStarted, setResult, socket, setColor } = useGameStore([
     "setIsGameStarted",
     "setResult",
     "socket",
     "setColor",
+    "isGameStarted"
   ]);
   const startGame = () => {
     if(!socket) return;
@@ -20,6 +21,8 @@ const NewGame = () => {
       })
     );
   };
+
+  if(isGameStarted) return null;
 
   return (
     <div className="flex justify-center items-center flex-col w-full lg:h-[465px]">
