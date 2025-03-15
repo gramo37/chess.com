@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { COMPLETED, IN_PROGRESS, INIT_GAME } from "../../constants";
+import { BLACK_WINS, COMPLETED, DRAW, IN_PROGRESS, INIT_GAME, WHITE_WINS } from "../../constants";
 import { BACKEND_URL } from "../../constants/routes";
 import { useGameStore } from "../../contexts/game.context";
 import { useGetGameStatusQuery } from "../../queries/games";
@@ -32,7 +32,7 @@ const NewGame = () => {
     refetchOnFocus: true
   });
   const gameStatus = data?.gameData?.status;
-  const [isWinner, setIsWinner] = useState<boolean | null>(null)
+  const [gameResult, setGameResult] = useState<"You Won" | "You Lost" | "Draw" | null>(null)
 
   useEffect(() => {
     refetch();
@@ -42,13 +42,15 @@ const NewGame = () => {
     if(!data || !data?.gameData?.board || !user?.id) return;
     setColor(data?.gameData?.blackPlayerId === user?.id ? "black" : "white");
     setBoard(data?.gameData?.board);
-    if(
-      (data?.gameData?.whitePlayerId === user?.id && data?.gameData?.result === "WHITE_WINS") ||
-      (data?.gameData?.blackPlayerId === user?.id && data?.gameData?.result === "BLACk_WINS")
+    if(data?.gameData?.result === DRAW) {
+      setGameResult("Draw")
+    }else if(
+      (data?.gameData?.whitePlayerId === user?.id && data?.gameData?.result === WHITE_WINS) ||
+      (data?.gameData?.blackPlayerId === user?.id && data?.gameData?.result === BLACK_WINS)
     ) {
-      setIsWinner(true);
+      setGameResult("You Won");
     } else {
-      setIsWinner(false);
+      setGameResult("You Lost");
     }
   }, [data, data?.gameData?.blackPlayerId, data?.gameData?.board, setBoard, setColor, user?.id])
 
@@ -86,7 +88,7 @@ const NewGame = () => {
       {id && gameStatus === COMPLETED && (
         <p className="text-white text-center m-5">
           Game Over. <br />
-          {isWinner ? "You Won!" : "You Lost"}
+          {gameResult}
         </p>
       )}
       <button
