@@ -84,7 +84,7 @@ const NewGame = () => {
   if (isGameStarted) return null;
 
   return (
-    <div className="flex justify-center items-center flex-col w-full lg:h-[465px]">
+    <div className="flex justify-center items-center flex-col w-full">
       {id && gameStatus === COMPLETED && (
         <p className="text-white text-center m-5">
           Game Over. <br />

@@ -88,6 +88,7 @@ const Chessboard = () => {
       return;
     }
   };
+  
   function onDrop(sourceSquare: Square, targetSquare: Square) {
     // Note -> This will not run during promotion
     // Promotion is handled differently

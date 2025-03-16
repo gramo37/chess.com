@@ -18,6 +18,7 @@ type TGame = {
   player1TimeLeft: number;
   player2TimeLeft: number;
   gameId: string | null;
+  gameType: "random" | "friendly";
 };
 
 type Move = TMove & {
@@ -45,6 +46,7 @@ type TAction = {
   setPlayer1TimeLeft: (player1TimeLeft: number) => void;
   setPlayer2TimeLeft: (player2TimeLeft: number) => void;
   setGameId: (gameId: string | null) => void;
+  setGameType: (gameType: "random" | "friendly") => void;
 };
 
 type TGameState = TAction & TGame;
@@ -63,6 +65,7 @@ const INITIAL_STATE = {
   player1TimeLeft: INITIAL_TIME,
   player2TimeLeft: INITIAL_TIME,
   gameId: null,
+  gameType: "random" as "random" | "friendly"
 };
 
 // Create your store, which includes both state and (optionally) actions
@@ -147,6 +150,9 @@ export const useStore = create<TGameState>((set) => {
     },
     setGameId: (gameId: string | null) => {
       set({ gameId });
+    },
+    setGameType: (gameType: "random" | "friendly") => {
+      set({ gameType })
     },
     startPlayerTimer: (player, initialTime) => startTimer(player, initialTime),
     stopPlayerTimer: (player) => stopTimer(player),
