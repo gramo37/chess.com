@@ -102,6 +102,11 @@ app.get(`/${BACKEND_ROUTE}/all_users`, async (req, res) => {
 app.get(`/${BACKEND_ROUTE}/getGameStatus`, async (req, res) => {
   try {
     const { gameId } = req.query;
+    if (!gameId) {
+      return res.status(400).json({
+        error: "Game ID is required",
+      });
+    }
     if (gameId && typeof gameId === "string") {
       const gameData = await db.game.findFirst({
         where: {
@@ -112,9 +117,6 @@ app.get(`/${BACKEND_ROUTE}/getGameStatus`, async (req, res) => {
         gameData,
       });
     }
-    return res.status(404).json({
-      gameData: null,
-    });
   } catch (e) {
     console.log(e);
     res.status(500).send("Something Went Wrong!");

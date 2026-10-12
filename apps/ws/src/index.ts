@@ -4,7 +4,7 @@ import { GameManager } from "./GameManager";
 import url from "url";
 import { connect } from "./db/redis";
 
-const PORT = Number(process.env.WEBSOCKET_PORT ?? 8080);
+const PORT = Number(process.env.WEBSOCKET_PORT ?? 8000);
 
 const server = http.createServer((req, res) => {
   const path = req.url?.split("?")[0];
