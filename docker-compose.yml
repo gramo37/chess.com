@@ -32,6 +32,7 @@ services:
       REDIS_DATA_KEY: "data"
       REDIS_HOST: redis
       REDIS_PORT: ${REDIS_PORT}
+      REDIS_TLS: ${REDIS_TLS:-false}
     depends_on:
       - redis
   ws:
