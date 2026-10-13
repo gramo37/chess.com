@@ -14,6 +14,9 @@ const BACKEND_IMAGE = "526955697352.dkr.ecr.us-east-1.amazonaws.com/chess/backen
 const WS_IMAGE = "526955697352.dkr.ecr.us-east-1.amazonaws.com/chess/ws:latest";
 const REDIS_IMAGE = "526955697352.dkr.ecr.us-east-1.amazonaws.com/chess/redis:latest";
 
+const FRONTEND_DOMAIN = "chess.gramo37.in";
+const BACKEND_DOMAIN = "chess-api.gramo37.in";
+
 export const CONFIG = {
     aws: {
       region: "us-east-1",
@@ -21,7 +24,8 @@ export const CONFIG = {
     },
   
     naming: {
-      stackName: "chess-app-infrastructure",
+      backendStackName: "chess-app-backend-stack",
+      frontendStackName: "chess-app-frontend-stack",
       vpcName: "chess-app-vpc",
       clusterName: "chess-app-cluster",
       taskDefinitionName: "chess-app-task",
@@ -33,7 +37,8 @@ export const CONFIG = {
     },
   
     domain: {
-      apiSubdomain: "chess-api.gramo37.in",
+      apiSubdomain: BACKEND_DOMAIN,
+      frontendDomain: FRONTEND_DOMAIN,
     },
 
     networking: {
