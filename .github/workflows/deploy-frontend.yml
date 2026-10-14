@@ -6,7 +6,9 @@ on:
       - main
     paths:
       - "apps/frontend/**"
-      - "infra/**"
+      - "cdk/**"
+      - "package.json"
+      - "package-lock.json"
       - ".github/workflows/deploy-frontend.yml"
   workflow_dispatch:
 
@@ -21,7 +23,7 @@ concurrency:
 env:
   AWS_REGION: us-east-1
   STACK_NAME: chess-app-frontend-stack
-  CDK_DIR: infra
+  CDK_DIR: cdk
 
 jobs:
   deploy:
