@@ -13,7 +13,7 @@ This will start a docker instance for postgres and redis
 
 Use git bash for below command
 ```bash
-yarn dev:setup
+npm run dev:setup
 ```
 
 ### Develop
@@ -21,12 +21,12 @@ yarn dev:setup
 To develop all apps and packages, run the following command:
 
 ```bash
-yarn run dev
+npm run dev
 ```
 ### Production
 
 To run the app on production, run the following commands:
 
 ```bash
-yarn run prod
+npm run prod
 ```

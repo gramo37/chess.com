@@ -22,8 +22,8 @@
     "setup:db": "cp .env.example ./packages/db/prisma/.env",
     "setup:ws": "cp ./apps/ws/.env.example ./apps/ws/.env",
     "setup:frontend": "cp ./apps/frontend/.env.example ./apps/frontend/.env",
-    "setup:env": "yarn setup:backend && yarn setup:db && yarn setup:ws && yarn setup:frontend",
-    "dev:setup": "yarn setup:env && yarn && yarn generate && yarn workspace backend run build",
+    "setup:env": "npm run setup:backend && npm run setup:db && npm run setup:ws && npm run setup:frontend",
+    "dev:setup": "npm run setup:env && npm install && npm run generate && npm run build -w backend",
     "clean": "rm -rf node_modules .env .turbo build"
   },
   "devDependencies": {
@@ -35,5 +35,5 @@
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "yarn@1.22.19"
+  "packageManager": "npm@10.4.0"
 }
