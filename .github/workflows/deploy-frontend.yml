@@ -46,6 +46,9 @@ jobs:
 
       - name: Build frontend
         run: npm run build:frontend
+        env:
+          VITE_BACKEND_URL: https://chess-api.gramo37.in
+          VITE_WS_URL: wss://chess-api.gramo37.in
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
