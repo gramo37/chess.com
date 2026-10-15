@@ -1,5 +1,5 @@
 import { BACKEND_URL } from "../constants/routes";
-import { useGetActiveUsersQuery, useGetAllUsersQuery } from "../queries/games";
+import { useGetAllUsersQuery } from "../queries/games";
 
 export default function Landing() {
   const signup = () => {
@@ -15,7 +15,7 @@ export default function Landing() {
   };
 
   const { data: users } = useGetAllUsersQuery({});
-  const { data } = useGetActiveUsersQuery({});
+  // const { data } = useGetActiveUsersQuery({});
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
