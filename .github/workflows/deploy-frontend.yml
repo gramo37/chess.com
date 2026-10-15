@@ -42,7 +42,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm run install:frontend
 
       - name: Build frontend
         run: npm run build:frontend
