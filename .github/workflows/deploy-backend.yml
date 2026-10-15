@@ -1,0 +1,136 @@
+name: Deploy Chess Backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/backend/**"
+      - "apps/ws/**"
+      - ".github/workflows/deploy-backend.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: chess-backend-production
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ACCOUNT_ID: "526955697352"
+  ECR_REGISTRY: 526955697352.dkr.ecr.us-east-1.amazonaws.com
+  CLUSTER_NAME: chess-app-cluster
+  SERVICE_NAME: chess-app-service
+  TASK_FAMILY: chess-app-task
+  API_CONTAINER: chess-app-api
+  WS_CONTAINER: chess-app-ws
+  API_REPOSITORY: chess/backend
+  WS_REPOSITORY: chess/ws
+
+jobs:
+  deploy:
+    name: Build images and deploy ECS
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push API and WebSocket images
+        id: images
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          api_image="${ECR_REGISTRY}/${API_REPOSITORY}:${IMAGE_TAG}"
+          ws_image="${ECR_REGISTRY}/${WS_REPOSITORY}:${IMAGE_TAG}"
+
+          docker build \
+            --tag "${api_image}" \
+            --tag "${ECR_REGISTRY}/${API_REPOSITORY}:latest" \
+            apps/backend
+
+          docker build \
+            --tag "${ws_image}" \
+            --tag "${ECR_REGISTRY}/${WS_REPOSITORY}:latest" \
+            apps/ws
+
+          docker push "${api_image}"
+          docker push "${ECR_REGISTRY}/${API_REPOSITORY}:latest"
+          docker push "${ws_image}"
+          docker push "${ECR_REGISTRY}/${WS_REPOSITORY}:latest"
+
+          echo "api_image=${api_image}" >> "$GITHUB_OUTPUT"
+          echo "ws_image=${ws_image}" >> "$GITHUB_OUTPUT"
+
+      - name: Render task definition with both images
+        env:
+          API_IMAGE: ${{ steps.images.outputs.api_image }}
+          WS_IMAGE: ${{ steps.images.outputs.ws_image }}
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition "${TASK_FAMILY}" \
+            --query taskDefinition \
+            > task-definition.json
+
+          jq \
+            --arg api_name "${API_CONTAINER}" \
+            --arg api_image "${API_IMAGE}" \
+            --arg ws_name "${WS_CONTAINER}" \
+            --arg ws_image "${WS_IMAGE}" \
+            '
+              .containerDefinitions |= map(
+                if .name == $api_name then .image = $api_image
+                elif .name == $ws_name then .image = $ws_image
+                else .
+                end
+              )
+              | del(
+                  .taskDefinitionArn,
+                  .revision,
+                  .status,
+                  .requiresAttributes,
+                  .compatibilities,
+                  .registeredAt,
+                  .registeredBy
+                )
+            ' task-definition.json > task-definition-new.json
+
+      - name: Register task definition
+        id: task
+        run: |
+          arn="$(aws ecs register-task-definition \
+            --cli-input-json file://task-definition-new.json \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)"
+          echo "arn=${arn}" >> "$GITHUB_OUTPUT"
+
+      - name: Force new ECS deployment
+        run: |
+          aws ecs update-service \
+            --cluster "${CLUSTER_NAME}" \
+            --service "${SERVICE_NAME}" \
+            --task-definition "${{ steps.task.outputs.arn }}" \
+            --force-new-deployment
+
+      - name: Wait for service to stabilize
+        run: |
+          aws ecs wait services-stable \
+            --cluster "${CLUSTER_NAME}" \
+            --services "${SERVICE_NAME}"
