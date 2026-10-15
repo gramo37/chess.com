@@ -52,11 +52,11 @@ export default function Landing() {
             </button>
           </div>
           <div className="mt-8">
-            <h3 className="text-sm font-light italic text-gray-300">
+            {/* <h3 className="text-sm font-light italic text-gray-300">
               Active Users: {(data?.games ?? 0) * 2}
-            </h3>
+            </h3> */}
             <h3 className="text-sm font-light italic text-gray-300">
-              Users: {users?.users ?? 0}
+              Total Users: {users?.users ?? 0}
             </h3>
           </div>
         </div>
