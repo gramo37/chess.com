@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider     = "postgres"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique @default("demo@gmail.com")
+  emailVerified DateTime?
+  password      String    @default("test")
+  gamesAsWhite  Game[]    @relation("GamesAsWhite")
+  gamesAsBlack  Game[]    @relation("GamesAsBlack")
+  isGuest       Boolean   @default(false)
+}
+
+model Game {
+  id            String       @id @default(cuid())
+  Move          Move[]
+  blackPlayerId String
+  whitePlayerId String
+  whitePlayer   User         @relation("GamesAsWhite", fields: [whitePlayerId], references: [id])
+  blackPlayer   User         @relation("GamesAsBlack", fields: [blackPlayerId], references: [id])
+  board         String       @default("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+  status        GameStatus?
+  result        GameResult?
+  gameOutCome   GameOutCome?
+  startTime     DateTime     @default(now())
+  endTime       DateTime?
+
+  @@index([blackPlayerId])
+  @@index([whitePlayerId])
+}
+
+model Move {
+  id         String  @id @default(cuid())
+  gameId     String
+  Game       Game    @relation(fields: [gameId], references: [id])
+  moveNumber Int
+  from       String
+  to         String
+  san        String
+  promotion  String?
+
+  @@index([gameId])
+}
+
+enum GameStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+enum GameResult {
+  WHITE_WINS
+  BLACK_WINS
+  DRAW
+}
+
+enum GameOutCome {
+  ACCEPT_DRAW
+  RESIGN
+  CHECKMATE
+  DRAW
+  TIMER_EXPIRED
+}
