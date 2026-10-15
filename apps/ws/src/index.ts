@@ -13,7 +13,7 @@ const server = http.createServer((req, res) => {
   const path = req.url?.split("?")[0];
   if (req.method === "GET" && (path === "/health" || path === "/ws")) {
     res.writeHead(200, { "Content-Type": "text/plain" });
-    res.end(path === "/health" ? "ok" : "websocket ok");
+    res.end(path === "/health" ? "ok" : "ws server ok");
     return;
   }
   res.writeHead(404);

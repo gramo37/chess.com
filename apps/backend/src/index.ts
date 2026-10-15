@@ -16,12 +16,13 @@ const expressSession = require("express-session");
 dotenv.config();
 
 const app = express();
-app.get("/health", (_req, res) => {
-  res.status(200).send("ok");
-});
 const ejs = require("ejs");
 const PORT = process.env.BACKEND_PORT ?? 3000;
 const BACKEND_ROUTE = "api";
+
+app.get(`/${BACKEND_ROUTE}/health`, (_req, res) => {
+  res.status(200).send("ok");
+});
 
 initPassport(passport);
 connectToRedis();
