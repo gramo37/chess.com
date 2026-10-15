@@ -45,7 +45,7 @@ jobs:
         run: npm ci
 
       - name: Build frontend
-        run: npm run build
+        run: npm run build:frontend
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
