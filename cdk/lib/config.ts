@@ -1,7 +1,7 @@
-const databaseUrl = process.env.DATABASE_URL;
-const secretKey = process.env.SECRET_KEY;
-const frontendUrl = process.env.FRONTEND_URL;
-const allowedHosts = process.env.ALLOWED_HOSTS;
+const databaseUrl = process.env.DATABASE_URL ?? "";
+const secretKey = process.env.SECRET_KEY ?? "";
+const frontendUrl = process.env.FRONTEND_URL ?? "https://chess.gramo37.in";
+const allowedHosts = process.env.ALLOWED_HOSTS ?? "http://localhost:5173,http://localhost:3000,http://localhost,https://chess.gramo37.in";
 
 // Sidecar Redis in the same Fargate task. Do not copy REDIS_HOST from .env:
 // that file points at ElastiCache, which this task does not use.
