@@ -11,9 +11,9 @@ dotenv.config();
 
 const server = http.createServer((req, res) => {
   const path = req.url?.split("?")[0];
-  if (req.method === "GET" && (path === "/health" || path === "/ws")) {
+  if (req.method === "GET" && (path === "/health" || path === "/ws" || path === "/ws/health")) {
     res.writeHead(200, { "Content-Type": "text/plain" });
-    res.end(path === "/health" ? "ok" : "ws server ok");
+    res.end(path === "/health" ? "ok" : path === "/ws/health" ? "ws health ok" : "ws ok");
     return;
   }
   res.writeHead(404);
