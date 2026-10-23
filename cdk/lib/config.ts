@@ -55,8 +55,8 @@ export const CONFIG = {
       desiredCount: 1,
       minCapacity: 1,
       maxCapacity: 1,
-      cpu: 1024,
-      memoryLimitMiB: 2048,
+      cpu: 256,
+      memoryLimitMiB: 512,
       healthCheckGracePeriodSeconds: 90,
       // Chess games sit idle between moves. The ALB default of 60s drops them.
       albIdleTimeoutSeconds: 3600,
