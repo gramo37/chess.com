@@ -92,7 +92,7 @@ export class ChessBeWsStack extends cdk.Stack {
         containerName: CONFIG.containers.api.name,
         image: imageFromEcr(this, "ApiRepository", CONFIG.containers.api.image),
         essential: true,
-        memoryReservationMiB: 512,
+        memoryReservationMiB: CONFIG.containers.api.memoryReservationMiB,
         environment: {
           ...CONFIG.containers.api.environment,
         },
@@ -113,7 +113,7 @@ export class ChessBeWsStack extends cdk.Stack {
         containerName: CONFIG.containers.ws.name,
         image: imageFromEcr(this, "WsRepository", CONFIG.containers.ws.image),
         essential: true,
-        memoryReservationMiB: 512,
+        memoryReservationMiB: CONFIG.containers.ws.memoryReservationMiB,
         environment: {
           ...CONFIG.containers.ws.environment,
         },
@@ -134,8 +134,7 @@ export class ChessBeWsStack extends cdk.Stack {
         containerName: CONFIG.containers.redis.name,
         image: imageFromEcr(this, "RedisRepository", CONFIG.containers.redis.image),
         essential: true,
-        memoryReservationMiB:
-          CONFIG.containers.redis.memoryLimitMiB,
+        memoryReservationMiB: CONFIG.containers.redis.memoryReservationMiB,
         memoryLimitMiB: CONFIG.containers.redis.memoryLimitMiB,
         environment: {
           ...CONFIG.containers.redis.environment,

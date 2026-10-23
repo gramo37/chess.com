@@ -56,7 +56,7 @@ export const CONFIG = {
       minCapacity: 1,
       maxCapacity: 1,
       cpu: 256,
-      memoryLimitMiB: 512,
+      memoryLimitMiB: 1024,
       healthCheckGracePeriodSeconds: 90,
       // Chess games sit idle between moves. The ALB default of 60s drops them.
       albIdleTimeoutSeconds: 3600,
@@ -68,6 +68,7 @@ export const CONFIG = {
         image: BACKEND_IMAGE,
         // apps/backend listens on BACKEND_PORT. Dockerfile exposes 5000.
         port: 5000,
+        memoryReservationMiB: 256,
         healthCheckPath: "/health",
         environment: {
           DATABASE_URL: databaseUrl,
@@ -88,6 +89,7 @@ export const CONFIG = {
         image: WS_IMAGE,
         // apps/ws listens on WEBSOCKET_PORT. Dockerfile exposes 8000.
         port: 8000,
+        memoryReservationMiB: 256,
         healthCheckPath: "/health",
         environment: {
           DATABASE_URL: databaseUrl,
@@ -104,6 +106,7 @@ export const CONFIG = {
         name: "chess-app-redis",
         image: REDIS_IMAGE,
         port: 6379,
+        memoryReservationMiB: 384,
         memoryLimitMiB: 384,
         environment: {},
       },
