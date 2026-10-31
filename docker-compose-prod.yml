@@ -20,20 +20,17 @@ services:
       - redis_data:/data
 
   backend:
-    image: gramo37/chess-backend:latest
+    image: 526955697352.dkr.ecr.us-east-1.amazonaws.com/chess/backend:latest
     ports: 
       - "5000:5000"
     environment:
       DATABASE_URL: ${DATABASE_URL}
       FRONTEND_URL: ${FRONTEND_URL}
-      VITE_BACKEND_URL: ${VITE_BACKEND_URL}
       BACKEND_PORT: ${BACKEND_PORT}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS}
       SECRET_KEY: "SECRET_KEY"
-      NODE_ENV: "production"
-      WEBSOCKET_PORT: ${WEBSOCKET_PORT}
-      VITE_WS_URL: ${VITE_WS_URL}
       REDIS_KEY: "REDIS_KEY"
+      REDIS_TLS: "false"
       REDIS_DATA_KEY: "data"
       REDIS_HOST: redis
       REDIS_PORT: ${REDIS_PORT}
@@ -41,47 +38,20 @@ services:
       - redis
 
   ws:
-    image: gramo37/chess-ws:latest
+    image: 526955697352.dkr.ecr.us-east-1.amazonaws.com/chess/ws:latest
     ports: 
       - "8000:8000"
     environment:
       DATABASE_URL: ${DATABASE_URL}
-      FRONTEND_URL: ${FRONTEND_URL}
-      VITE_BACKEND_URL: ${VITE_BACKEND_URL}
       BACKEND_PORT: ${BACKEND_PORT}
-      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
       SECRET_KEY: "SECRET_KEY"
-      NODE_ENV: "production"
-      WEBSOCKET_PORT: ${WEBSOCKET_PORT}
-      VITE_WS_URL: ${VITE_WS_URL}
       REDIS_KEY: "REDIS_KEY"
       REDIS_DATA_KEY: "data"
+      REDIS_TLS: "false"
       REDIS_HOST: redis
       REDIS_PORT: ${REDIS_PORT}
     depends_on:
       - redis
-
-  frontend:
-    image: gramo37/chess-frontend:latest
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-      - ws
-    environment:
-      DATABASE_URL: ${DATABASE_URL}
-      FRONTEND_URL: ${FRONTEND_URL}
-      VITE_BACKEND_URL: ${VITE_BACKEND_URL}
-      BACKEND_PORT: ${BACKEND_PORT}
-      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
-      SECRET_KEY: "SECRET_KEY"
-      NODE_ENV: "production"
-      WEBSOCKET_PORT: ${WEBSOCKET_PORT}
-      VITE_WS_URL: ${VITE_WS_URL}
-      REDIS_KEY: "REDIS_KEY"
-      REDIS_DATA_KEY: "data"
-      REDIS_HOST: redis
-      REDIS_PORT: ${REDIS_PORT}
 
 volumes:
   postgres_data:

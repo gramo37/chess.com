@@ -22,17 +22,16 @@ env:
   AWS_REGION: us-east-1
   AWS_ACCOUNT_ID: "526955697352"
   ECR_REGISTRY: 526955697352.dkr.ecr.us-east-1.amazonaws.com
-  CLUSTER_NAME: chess-app-cluster
-  SERVICE_NAME: chess-app-service
-  TASK_FAMILY: chess-app-task
-  API_CONTAINER: chess-app-api
-  WS_CONTAINER: chess-app-ws
   API_REPOSITORY: chess/backend
   WS_REPOSITORY: chess/ws
+  EC2_HOST: 54.227.33.240
+  EC2_USER: ec2-user
+  EC2_APP_DIR: /home/ec2-user/chess
+  COMPOSE_FILE: docker-compose.yml
 
 jobs:
   deploy:
-    name: Build images and deploy ECS
+    name: Build images and deploy EC2
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 30
@@ -79,58 +78,39 @@ jobs:
           echo "api_image=${api_image}" >> "$GITHUB_OUTPUT"
           echo "ws_image=${ws_image}" >> "$GITHUB_OUTPUT"
 
-      - name: Render task definition with both images
+      - name: Deploy containers on EC2
         env:
+          SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
           API_IMAGE: ${{ steps.images.outputs.api_image }}
           WS_IMAGE: ${{ steps.images.outputs.ws_image }}
         run: |
-          aws ecs describe-task-definition \
-            --task-definition "${TASK_FAMILY}" \
-            --query taskDefinition \
-            > task-definition.json
+          if [ -z "${SSH_KEY}" ]; then
+            echo "EC2_SSH_KEY is not set. Add the EC2 private key as a repository secret."
+            exit 1
+          fi
 
-          jq \
-            --arg api_name "${API_CONTAINER}" \
-            --arg api_image "${API_IMAGE}" \
-            --arg ws_name "${WS_CONTAINER}" \
-            --arg ws_image "${WS_IMAGE}" \
-            '
-              .containerDefinitions |= map(
-                if .name == $api_name then .image = $api_image
-                elif .name == $ws_name then .image = $ws_image
-                else .
-                end
-              )
-              | del(
-                  .taskDefinitionArn,
-                  .revision,
-                  .status,
-                  .requiresAttributes,
-                  .compatibilities,
-                  .registeredAt,
-                  .registeredBy
-                )
-            ' task-definition.json > task-definition-new.json
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${SSH_KEY}" > ~/.ssh/ec2.pem
+          chmod 600 ~/.ssh/ec2.pem
+          ssh-keyscan -H "${EC2_HOST}" >> ~/.ssh/known_hosts
 
-      - name: Register task definition
-        id: task
-        run: |
-          arn="$(aws ecs register-task-definition \
-            --cli-input-json file://task-definition-new.json \
-            --query 'taskDefinition.taskDefinitionArn' \
-            --output text)"
-          echo "arn=${arn}" >> "$GITHUB_OUTPUT"
+          ecr_password="$(aws ecr get-login-password --region "${AWS_REGION}")"
+          echo "::add-mask::${ecr_password}"
 
-      - name: Force new ECS deployment
-        run: |
-          aws ecs update-service \
-            --cluster "${CLUSTER_NAME}" \
-            --service "${SERVICE_NAME}" \
-            --task-definition "${{ steps.task.outputs.arn }}" \
-            --force-new-deployment
+          ssh -i ~/.ssh/ec2.pem -o StrictHostKeyChecking=yes \
+            "${EC2_USER}@${EC2_HOST}" \
+            "ECR_PASSWORD='${ecr_password}' ECR_REGISTRY='${ECR_REGISTRY}' API_IMAGE='${API_IMAGE}' WS_IMAGE='${WS_IMAGE}' APP_DIR='${EC2_APP_DIR}' COMPOSE_FILE='${COMPOSE_FILE}' bash -s" <<EOF
+          set -euo pipefail
+          cd "\${APP_DIR}"
 
-      - name: Wait for service to stabilize
-        run: |
-          aws ecs wait services-stable \
-            --cluster "${CLUSTER_NAME}" \
-            --services "${SERVICE_NAME}"
+          printf '%s' "\${ECR_PASSWORD}" | docker login --username AWS --password-stdin "\${ECR_REGISTRY}"
+
+          docker compose -f "\${COMPOSE_FILE}" stop backend ws
+          docker compose -f "\${COMPOSE_FILE}" rm -f backend ws
+          docker image rm -f "\${API_IMAGE}" "\${ECR_REGISTRY}/chess/backend:latest" \
+            "\${WS_IMAGE}" "\${ECR_REGISTRY}/chess/ws:latest" || true
+
+          docker compose -f "\${COMPOSE_FILE}" pull backend ws
+          docker compose -f "\${COMPOSE_FILE}" up -d backend ws
+          docker compose -f "\${COMPOSE_FILE}" ps
+          EOF
