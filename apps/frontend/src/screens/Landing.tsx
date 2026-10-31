@@ -26,7 +26,7 @@ export default function Landing() {
         ></div>
         <div className="w-full p-8 lg:w-1/2">
           <h2 className="text-2xl font-bold text-gray-300">
-            Welcome to Chess!
+            Welcome to Chess 2 pro!
           </h2>
           <p className="mt-4 text-gray-400">
             Join the exciting world of online chess.

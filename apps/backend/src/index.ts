@@ -19,14 +19,14 @@ const app = express();
 const ejs = require("ejs");
 
 app.get(`/health`, (_req, res) => {
-  res.status(200).send("ok");
+  res.status(200).send("ok 2");
 });
 
 const PORT = process.env.BACKEND_PORT ?? 3000;
 const BACKEND_ROUTE = "api";
 
 app.get(`/${BACKEND_ROUTE}/health`, (_req, res) => {
-  res.status(200).send("ok");
+  res.status(200).send("ok 323");
 });
 
 initPassport(passport);
